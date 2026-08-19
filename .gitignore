@@ -1,0 +1,49 @@
+.DS_Store
+
+# Local credentials and private profile overlays
+.env
+.env.*
+*.env
+config.local.json
+config.*.local.json
+config.private.json
+*.private.json
+*.local.json
+profiles.local/
+profiles/*.local.json
+secrets/
+
+# Local run artifacts generated while using the skill
+.portable-jira-flow/runs/
+runs/
+*.log
+*.trace
+*.har
+*.webm
+*.mp4
+*.mov
+*.png
+*.jpg
+*.jpeg
+*.zip
+screenshots/
+traces/
+videos/
+attachments/
+
+# Common local dependency and test output folders
+__pycache__/
+node_modules/
+vendor/
+dist/
+build/
+coverage/
+playwright-report/
+test-results/
+.pytest_cache/
+.phpunit.result.cache
+
+# Keep generic distributable config files
+!config.example.json
+!config.local.example.jsonc
+!config.schema.json

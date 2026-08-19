@@ -1,0 +1,4 @@
+interface:
+  display_name: "Portable Jira Flow"
+  short_description: "Portable Jira ticket workflow"
+  default_prompt: "Use $portable-jira-flow inspect ABC-123."

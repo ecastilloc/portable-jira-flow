@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/portable-jira-flow/config.schema.json",
+  "title": "Portable Jira Flow Config",
+  "type": "object",
+  "required": ["schemaVersion", "defaultProfile", "invocation", "stageRegistry", "artifactRegistry", "policy", "profiles"],
+  "properties": {
+    "schemaVersion": {"type": "string", "pattern": "^1\\."},
+    "defaultProfile": {"type": ["string", "null"]},
+    "invocation": {
+      "type": "object",
+      "required": ["primaryCommands", "legacyAliases", "explicitFlags"],
+      "properties": {
+        "normalizeUnicodeDashes": {"type": "boolean"},
+        "primaryCommands": {"type": "object", "additionalProperties": {"type": "array", "items": {"type": "string"}}},
+        "legacyAliases": {"type": "object", "additionalProperties": {"type": "string"}},
+        "explicitFlags": {"type": "object"}
+      }
+    },
+    "stageRegistry": {"type": "object", "additionalProperties": {"$ref": "#/$defs/stage"}},
+    "artifactRegistry": {"type": "object", "additionalProperties": {"$ref": "#/$defs/artifact"}},
+    "policy": {"type": "object"},
+    "profiles": {"type": "object", "additionalProperties": {"$ref": "#/$defs/profile"}}
+  },
+  "$defs": {
+    "stage": {
+      "type": "object",
+      "required": ["command", "legacyAliases", "readOnly", "mayEditCode", "mayMutateEnvironment", "requiresExplicitUserIntent", "writesArtifacts"],
+      "properties": {
+        "command": {"type": "string"},
+        "legacyAliases": {"type": "array", "items": {"type": "string"}},
+        "readOnly": {"type": "boolean"},
+        "mayEditCode": {"type": "boolean"},
+        "mayMutateEnvironment": {"type": "boolean"},
+        "requiresExplicitUserIntent": {"type": "boolean"},
+        "writesArtifacts": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "required": ["path", "producer", "consumers", "sourceOfTruth", "derived", "userFacing", "privacyLevel", "committable", "retention"],
+      "properties": {
+        "path": {"type": "string"},
+        "producer": {"type": "string"},
+        "consumers": {"type": "array", "items": {"type": "string"}},
+        "sourceOfTruth": {"type": "boolean"},
+        "derived": {"type": "boolean"},
+        "userFacing": {"type": "boolean"},
+        "privacyLevel": {"enum": ["public", "internal", "private", "secret-redacted"]},
+        "committable": {"type": "boolean"},
+        "retention": {"enum": ["keep", "keep-latest", "expire", "manual-cleanup"]}
+      }
+    },
+    "profile": {
+      "type": "object",
+      "required": ["displayName", "ticketPrefixes", "jira", "repositories", "workspaces"],
+      "properties": {
+        "displayName": {"type": "string"},
+        "ticketPrefixes": {"type": "array", "items": {"type": "string"}},
+        "jira": {"type": "object"},
+        "repositories": {"type": "array", "items": {"type": "object"}},
+        "gitIdentity": {"type": "object"},
+        "provider": {"type": "object"},
+        "workspaces": {"type": "object"},
+        "branching": {"type": "object"},
+        "analysis": {"type": "object"},
+        "ticketTypes": {"type": "object"},
+        "commands": {"type": "array", "items": {"type": "object"}},
+        "environments": {"type": "object"},
+        "referenceFiles": {"type": "object"},
+        "e2e": {"type": "object"},
+        "commits": {"type": "object"},
+        "publishing": {"type": "object"}
+      }
+    }
+  }
+}

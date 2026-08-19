@@ -1,0 +1,335 @@
+{
+  "schemaVersion": "1.0.0",
+  "defaultProfile": "example",
+  "invocation": {
+    "normalizeUnicodeDashes": true,
+    "primaryCommands": {
+      "help": ["help"],
+      "doctor": ["doctor"],
+      "inspect": ["context", "classification", "reproductionHypothesis", "readinessCheck", "plan"],
+      "start": ["context", "classification", "reproductionHypothesis", "readinessCheck", "plan", "prepareWorkspace"],
+      "implement": ["implementation"],
+      "verify": ["validation", "manualValidation"],
+      "ready": ["environmentReadiness", "qaGuide"],
+      "accept": ["environmentAcceptance"],
+      "publish": ["prePublishValidation", "publishDraft"],
+      "report": ["finalReport"],
+      "status": ["status"],
+      "cleanup": ["cleanup"]
+    },
+    "legacyAliases": {
+      "analyze": "inspect",
+      "a": "inspect",
+      "--analyze": "inspect",
+      "--context": "inspect",
+      "--plan": "inspect",
+      "--readiness-check": "inspect",
+      "repro": "inspect",
+      "r": "inspect",
+      "--reproduce": "inspect",
+      "branch": "start",
+      "b": "start",
+      "--branch": "start",
+      "--prepare-branches": "start",
+      "code": "implement",
+      "c": "implement",
+      "--code": "implement",
+      "--implement": "implement",
+      "check": "verify",
+      "--check": "verify",
+      "--validate": "verify",
+      "manual-validation": "verify",
+      "--manual-validation": "verify",
+      "env-ready": "ready",
+      "ready-for-testing": "ready",
+      "--env-ready": "ready",
+      "--ready-for-testing": "ready",
+      "qa-guide": "ready",
+      "validation-guide": "ready",
+      "--qa-guide": "ready",
+      "--validation-guide": "ready",
+      "acceptance-validation": "accept",
+      "--acceptance-validation": "accept",
+      "pre-publish-validation": "publish",
+      "publish-check": "publish",
+      "--pre-publish-validation": "publish",
+      "--publish-check": "publish",
+      "complete": "report",
+      "--complete": "report",
+      "--final-report": "report",
+      "abc": "start",
+      "--abc": "start"
+    },
+    "explicitFlags": {
+      "commit": ["commit", "--commit"],
+      "noCommit": ["--no-commit"],
+      "publishDraft": ["--publish-draft-mr", "--create-draft-pr", "--create-draft-mr"],
+      "allowMutations": ["--allow-mutations"],
+      "forceImplement": ["--force-implement"],
+      "profile": "--profile",
+      "fromBranch": "--from-branch",
+      "parentTicket": ["--parent", "--parent-ticket"],
+      "parentBranch": "--parent-branch",
+      "cleanupApply": "--apply"
+    }
+  },
+  "stageRegistry": {
+    "help": {"command": "help", "legacyAliases": [], "readOnly": true, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": false, "writesArtifacts": []},
+    "doctor": {"command": "doctor", "legacyAliases": [], "readOnly": true, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": false, "writesArtifacts": []},
+    "context": {"command": "inspect", "legacyAliases": ["analyze", "--context"], "readOnly": true, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": false, "writesArtifacts": ["runState", "jira", "context"]},
+    "classification": {"command": "inspect", "legacyAliases": ["analyze"], "readOnly": true, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": false, "writesArtifacts": ["classification"]},
+    "reproductionHypothesis": {"command": "inspect", "legacyAliases": ["repro", "--reproduce"], "readOnly": true, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": false, "writesArtifacts": ["rootCause"]},
+    "readinessCheck": {"command": "inspect", "legacyAliases": ["--readiness-check"], "readOnly": true, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": false, "writesArtifacts": ["readiness", "blockers", "assumptions"]},
+    "plan": {"command": "inspect", "legacyAliases": ["--plan"], "readOnly": true, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": false, "writesArtifacts": ["implementationPlan", "validationPlan"]},
+    "prepareWorkspace": {"command": "start", "legacyAliases": ["branch", "--prepare-branches"], "readOnly": false, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": true, "writesArtifacts": ["repoMap", "workspaceMap", "baseSnapshot", "worktreeSafety"]},
+    "implementation": {"command": "implement", "legacyAliases": ["code", "--implement"], "readOnly": false, "mayEditCode": true, "mayMutateEnvironment": false, "requiresExplicitUserIntent": true, "writesArtifacts": ["runState", "implementationPlan"]},
+    "validation": {"command": "verify", "legacyAliases": ["check", "--validate"], "readOnly": false, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": true, "writesArtifacts": ["validationResults"]},
+    "manualValidation": {"command": "verify", "legacyAliases": ["manual-validation", "--manual-validation"], "readOnly": false, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": true, "writesArtifacts": ["manualValidation"]},
+    "environmentReadiness": {"command": "ready", "legacyAliases": ["env-ready", "ready-for-testing"], "readOnly": true, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": true, "writesArtifacts": ["environmentReadiness"]},
+    "qaGuide": {"command": "ready", "legacyAliases": ["qa-guide", "validation-guide"], "readOnly": true, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": true, "writesArtifacts": ["qaGuide", "qaGuideAllEnvs"]},
+    "environmentAcceptance": {"command": "accept", "legacyAliases": ["acceptance-validation"], "readOnly": false, "mayEditCode": false, "mayMutateEnvironment": true, "requiresExplicitUserIntent": true, "writesArtifacts": ["environmentAcceptance"]},
+    "prePublishValidation": {"command": "publish", "legacyAliases": ["pre-publish-validation", "publish-check"], "readOnly": false, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": true, "writesArtifacts": ["prePublishValidation", "qaVideo"]},
+    "publishDraft": {"command": "publish", "legacyAliases": ["--publish-draft-mr"], "readOnly": false, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": true, "writesArtifacts": ["mrDescription"]},
+    "finalReport": {"command": "report", "legacyAliases": ["complete", "--final-report"], "readOnly": false, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": true, "writesArtifacts": ["definitionOfDone", "finalSummary", "artifactIndex"]},
+    "status": {"command": "status", "legacyAliases": [], "readOnly": true, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": true, "writesArtifacts": []},
+    "cleanup": {"command": "cleanup", "legacyAliases": [], "readOnly": false, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": true, "writesArtifacts": ["artifactIndex"]}
+  },
+  "artifactRegistry": {
+    "runState": {"path": "run.json", "producer": "all", "consumers": ["all"], "sourceOfTruth": true, "derived": false, "userFacing": false, "privacyLevel": "private", "committable": false, "retention": "keep"},
+    "artifactIndex": {"path": "artifact-index.md", "producer": "report", "consumers": ["status", "cleanup", "report"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
+    "jira": {"path": "jira.json", "producer": "inspect", "consumers": ["inspect", "verify", "ready", "report"], "sourceOfTruth": false, "derived": false, "userFacing": false, "privacyLevel": "secret-redacted", "committable": false, "retention": "keep"},
+    "context": {"path": "context.md", "producer": "inspect", "consumers": ["implement", "verify", "report"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
+    "repoMap": {"path": "repo-map.md", "producer": "start", "consumers": ["implement", "verify"], "sourceOfTruth": false, "derived": true, "userFacing": false, "privacyLevel": "internal", "committable": false, "retention": "keep"},
+    "workspaceMap": {"path": "workspace-map.md", "producer": "start", "consumers": ["implement", "verify", "publish"], "sourceOfTruth": false, "derived": true, "userFacing": false, "privacyLevel": "internal", "committable": false, "retention": "keep"},
+    "baseSnapshot": {"path": "base-snapshot.md", "producer": "inspect", "consumers": ["start", "implement"], "sourceOfTruth": false, "derived": true, "userFacing": false, "privacyLevel": "internal", "committable": false, "retention": "keep"},
+    "classification": {"path": "classification.md", "producer": "inspect", "consumers": ["implement", "report"], "sourceOfTruth": false, "derived": true, "userFacing": false, "privacyLevel": "internal", "committable": false, "retention": "keep-latest"},
+    "rootCause": {"path": "root-cause.md", "producer": "inspect", "consumers": ["implement", "verify", "report"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
+    "readiness": {"path": "readiness-check.md", "producer": "inspect", "consumers": ["implement", "status", "report"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
+    "implementationPlan": {"path": "implementation-plan.md", "producer": "inspect", "consumers": ["implement", "verify", "publish"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
+    "blockers": {"path": "blockers.md", "producer": "all", "consumers": ["status", "report"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep-latest"},
+    "assumptions": {"path": "assumptions.md", "producer": "inspect", "consumers": ["implement", "report"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep-latest"},
+    "validationPlan": {"path": "validation-plan.md", "producer": "inspect", "consumers": ["verify", "publish"], "sourceOfTruth": false, "derived": true, "userFacing": false, "privacyLevel": "internal", "committable": false, "retention": "keep"},
+    "validationResults": {"path": "validation-results.md", "producer": "verify", "consumers": ["publish", "report"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
+    "manualValidation": {"path": "manual-validation-steps.md", "producer": "verify", "consumers": ["ready", "accept", "publish"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
+    "environmentReadiness": {"path": "environment-readiness-{environment}.md", "producer": "ready", "consumers": ["status", "report"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
+    "qaGuide": {"path": "qa-validation-guide-{environment}.md", "producer": "ready", "consumers": ["accept", "report"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
+    "qaGuideAllEnvs": {"path": "qa-validation-guide-all-envs.md", "producer": "ready", "consumers": ["report"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
+    "environmentAcceptance": {"path": "environment-acceptance-{environment}.md", "producer": "accept", "consumers": ["report"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "private", "committable": false, "retention": "keep"},
+    "prePublishValidation": {"path": "pre-publish-validation.md", "producer": "publish", "consumers": ["publish", "report"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
+    "qaVideo": {"path": "qa-validation-video-{ticketKey}.{ext}", "producer": "publish", "consumers": ["report"], "sourceOfTruth": false, "derived": false, "userFacing": true, "privacyLevel": "private", "committable": false, "retention": "manual-cleanup"},
+    "definitionOfDone": {"path": "definition-of-done.md", "producer": "report", "consumers": ["report"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep-latest"},
+    "worktreeSafety": {"path": "worktree-safety.md", "producer": "start", "consumers": ["implement", "status"], "sourceOfTruth": false, "derived": true, "userFacing": false, "privacyLevel": "private", "committable": false, "retention": "keep"},
+    "mrDescription": {"path": "mr-description.md", "producer": "publish", "consumers": ["publish"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
+    "deploymentNotes": {"path": "deployment-notes.md", "producer": "report", "consumers": ["report"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
+    "rollbackPlan": {"path": "rollback-plan.md", "producer": "report", "consumers": ["report"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
+    "qaNotes": {"path": "qa-notes.md", "producer": "report", "consumers": ["report"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
+    "finalSummary": {"path": "final-summary.md", "producer": "report", "consumers": ["status", "report"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"}
+  },
+  "policy": {
+    "defaultReadOnlyEnvironments": ["dev", "stage", "prod"],
+    "requireExplicitPublish": true,
+    "requireExplicitCommit": true,
+    "requirePrePublishValidationBeforeDraft": true,
+    "blockPublishOnFailedRequiredGate": true,
+    "blockPublishOnPostCommitTrackedChanges": true,
+    "forbidDeployments": true,
+    "forbidJiraTransitions": true,
+    "forbidUnconfiguredCommands": true,
+    "statusWritesNextAction": true,
+    "skillRepositoryProvider": {
+      "provider": "github",
+      "verifyBeforeRemotePushOrPr": true
+    }
+  },
+  "profiles": {
+    "example": {
+      "displayName": "Example",
+      "ticketPrefixes": ["ABC"],
+      "jira": {
+        "baseUrl": "https://example.atlassian.net",
+        "credentialStorage": "environment",
+        "emailEnv": "JIRA_EMAIL",
+        "tokenEnv": "JIRA_API_TOKEN",
+        "envFile": "~/.portable-jira-flow/example-jira.env",
+        "fields": ["summary", "description", "status", "priority", "issuetype", "labels", "components", "parent", "issuelinks", "comment", "attachment", "environment"]
+      },
+      "repositories": [
+        {
+          "name": "app",
+          "path": "~/work/app",
+          "baseBranch": "main",
+          "branchPrefix": "feature",
+          "required": true,
+          "commit": true
+        }
+      ],
+      "gitIdentity": {
+        "verifyBeforeCommit": true,
+        "requiredEmailDomain": "company.example",
+        "allowedEmailPatterns": ["*@company.example"]
+      },
+      "provider": {
+        "name": "github",
+        "scope": "ticketRepositories",
+        "verifyBeforeRemotePushOrPr": true,
+        "requiredAccountDomain": "company.example",
+        "allowedRemoteHosts": ["github.com"],
+        "allowedRemoteOwners": ["example-org"]
+      },
+      "workspaces": {
+        "mode": "git-worktree",
+        "reuseCanonicalPaths": false,
+        "allowDuplicateTicketWorkspaces": false,
+        "missingWorkspaceStrategy": "create-if-configured",
+        "ticketWorkspaceRoot": "~/work/tickets",
+        "ticketWorkspaceFormat": "{ticketKey}/{repoName}"
+      },
+      "branching": {
+        "nameFormat": "{branchPrefix}/{ticketKey}",
+        "dirtyStrategy": "backup-branch",
+        "existingBranchStrategy": "reuse",
+        "prefixByTicketType": {
+          "feature": "feature",
+          "bug": "bugfix",
+          "regression": "regression",
+          "production-bug": "hotfix",
+          "hotfix": "hotfix",
+          "spike": "spike",
+          "refactor": "refactor",
+          "test-only": "test",
+          "chore": "chore",
+          "unknown": "feature"
+        }
+      },
+      "analysis": {
+        "includeDescription": true,
+        "includeComments": true,
+        "includeAttachments": false,
+        "includeAcceptanceCriteria": true,
+        "includeLinkedTickets": true,
+        "baseBranchInspection": {
+          "enabled": true,
+          "fetchRemote": true,
+          "inspectLatestBase": true
+        }
+      },
+      "ticketTypes": {
+        "aliases": {
+          "feature": ["Story", "Feature", "New Feature", "Improvement"],
+          "bug": ["Bug", "Defect"],
+          "regression": ["Regression"],
+          "production-bug": ["Production Bug", "Production Defect", "Incident"],
+          "hotfix": ["Hotfix", "Emergency Fix"],
+          "spike": ["Spike", "Research"],
+          "refactor": ["Refactor", "Tech Debt", "Technical Debt"],
+          "test-only": ["Test", "QA", "Automation", "Test-only"],
+          "chore": ["Chore", "Maintenance"]
+        },
+        "bugLikeTypes": ["bug", "regression", "production-bug", "hotfix"],
+        "reproduction": {
+          "attemptLocalReproduction": true,
+          "stopIfCannotReproduce": false,
+          "commands": []
+        }
+      },
+      "commands": [
+        {
+          "name": "lint",
+          "stage": "validation",
+          "repo": "app",
+          "command": "npm run lint",
+          "runner": "host",
+          "workdir": "{selectedWorkspacePath}",
+          "mutability": "read-only",
+          "requiredForPublish": true,
+          "artifacts": [],
+          "nonCommittableArtifacts": [],
+          "backupBeforeRun": false,
+          "compareOnFailure": false
+        },
+        {
+          "name": "unit-tests",
+          "stage": "validation",
+          "repo": "app",
+          "command": "npm test",
+          "runner": "host",
+          "workdir": "{selectedWorkspacePath}",
+          "mutability": "read-only",
+          "requiredForPublish": true,
+          "artifacts": ["coverage/"],
+          "nonCommittableArtifacts": ["coverage/"],
+          "backupBeforeRun": true,
+          "compareOnFailure": true
+        }
+      ],
+      "environments": {
+        "local": {
+          "type": "local",
+          "readOnlyByDefault": true,
+          "baseUrls": ["http://localhost:3000"],
+          "healthChecks": [
+            {
+              "name": "app-health",
+              "description": "Example local read-only health check",
+              "runner": "host",
+              "command": "curl -fsS http://localhost:3000/health",
+              "readOnly": true
+            }
+          ],
+          "authRefreshCommand": null,
+          "codePresenceCommands": [],
+          "readOnlyDiscoveryCommands": [],
+          "acceptanceCommands": []
+        },
+        "stage": {
+          "type": "shared",
+          "readOnlyByDefault": true,
+          "baseUrls": ["https://stage.example.com"],
+          "healthChecks": [
+            {
+              "name": "app-health",
+              "description": "Example stage read-only health check",
+              "runner": "host",
+              "command": "curl -fsS https://stage.example.com/health",
+              "readOnly": true
+            }
+          ],
+          "authRefreshCommand": null,
+          "codePresenceCommands": [],
+          "readOnlyDiscoveryCommands": [],
+          "acceptanceCommands": []
+        }
+      },
+      "e2e": {
+        "enabled": false,
+        "mode": "isolated-playwright",
+        "workspacePath": "~/work/app-e2e",
+        "defaultEnvironment": "local",
+        "specDir": "tests",
+        "specFilePattern": "{ticketKeyLower}-{shortSummary}.spec.ts",
+        "runCommandTemplate": "npx playwright test {specPaths}",
+        "createMissingTicketSpecs": true,
+        "generatedSpecSource": "manual-validation-steps.md",
+        "mapSpecsToAcceptanceCriteria": true,
+        "commitGeneratedSpecs": false
+      },
+      "commits": {
+        "enabled": false,
+        "messageFormat": "{ticketKey}: {summary}",
+        "oneCommitPerRepo": true,
+        "skipIfNoChanges": true
+      },
+      "publishing": {
+        "enabled": false,
+        "provider": "configured-provider",
+        "explicitPublishFlags": ["--publish-draft-mr", "--create-draft-pr", "--create-draft-mr"],
+        "defaultDraft": true,
+        "requiredPrePublishValidation": true,
+        "descriptionTemplate": "references/templates.md#mr-description.md",
+        "providerGuard": {
+          "source": "profile.provider"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,181 @@
+{
+  // Copy relevant sections to ignored config.local.json or profiles.local/*.
+  // Local overlays may contain private paths, internal URLs, credential handle
+  // names, company-specific commands, and profile-pack reference routes.
+  //
+  // Do not commit real passwords, cookies, bearer values, customer data,
+  // private URLs, or full local env-file contents.
+  "schemaVersion": "1.0.0",
+  "defaultProfile": "company-work",
+
+  "profiles": {
+    "company-work": {
+      "displayName": "Company Work",
+      "ticketPrefixes": ["ABC"],
+
+      "jira": {
+        "baseUrl": "https://jira.example.com",
+        "credentialStorage": "envFile",
+        "envFile": "~/.portable-jira-flow/example-jira.env",
+        "emailEnv": "JIRA_EMAIL",
+        "tokenEnv": "JIRA_API_TOKEN",
+        "fields": [
+          "summary",
+          "description",
+          "status",
+          "priority",
+          "issuetype",
+          "labels",
+          "components",
+          "parent",
+          "issuelinks",
+          "comment",
+          "attachment",
+          "environment"
+        ]
+      },
+
+      "repositories": [
+        {
+          "name": "app",
+          "path": "~/work/app",
+          "baseBranch": "main",
+          "branchPrefix": "feature",
+          "required": true,
+          "commit": true
+        },
+        {
+          "name": "ui",
+          "path": "~/work/app-ui",
+          "baseBranch": "main",
+          "branchPrefix": "feature",
+          "required": false,
+          "commit": true
+        }
+      ],
+
+      "gitIdentity": {
+        "verifyBeforeCommit": true,
+        "requiredEmailDomain": "company.example",
+        "allowedEmailPatterns": ["*@company.example"]
+      },
+
+      "provider": {
+        "name": "github",
+        "scope": "ticketRepositories",
+        "verifyBeforeRemotePushOrPr": true,
+        "requiredAccountDomain": "company.example",
+        "allowedRemoteHosts": ["github.com"],
+        "allowedRemoteOwners": ["example-org"]
+      },
+
+      "workspaces": {
+        "mode": "git-worktree",
+        "reuseCanonicalPaths": false,
+        "allowDuplicateTicketWorkspaces": false,
+        "missingWorkspaceStrategy": "create-if-configured",
+        "ticketWorkspaceRoot": "~/work/tickets",
+        "ticketWorkspaceFormat": "{ticketKey}/{repoName}"
+      },
+
+      "branching": {
+        "nameFormat": "{branchPrefix}/{ticketKey}",
+        "dirtyStrategy": "backup-branch",
+        "existingBranchStrategy": "reuse",
+        "prefixByTicketType": {
+          "feature": "feature",
+          "bug": "bugfix",
+          "regression": "regression",
+          "production-bug": "hotfix",
+          "hotfix": "hotfix",
+          "spike": "spike",
+          "refactor": "refactor",
+          "test-only": "test",
+          "chore": "chore",
+          "unknown": "feature"
+        }
+      },
+
+      "referenceFiles": {
+        "ready:local": ["profiles.local/company/references/local-readiness.md"],
+        "accept:stage": ["profiles.local/company/references/stage-acceptance.md"],
+        "status": ["profiles.local/company/references/status-notes.md"]
+      },
+
+      "commands": [
+        {
+          "name": "unit-tests",
+          "stage": "validation",
+          "repo": "app",
+          "command": "npm test -- --runInBand",
+          "runner": "host",
+          "workdir": "{selectedWorkspacePath}",
+          "mutability": "read-only",
+          "requiredForPublish": true,
+          "artifacts": [],
+          "nonCommittableArtifacts": ["coverage/", "test-results/"],
+          "backupBeforeRun": false,
+          "compareOnFailure": true
+        }
+      ],
+
+      "environments": {
+        "local": {
+          "type": "local",
+          "readOnlyByDefault": true,
+          "baseUrls": ["http://localhost:3000"],
+          "healthChecks": [
+            {
+              "name": "app-health",
+              "description": "Example local read-only health check",
+              "runner": "host",
+              "command": "curl -fsS http://localhost:3000/health",
+              "readOnly": true
+            }
+          ],
+          "authRefreshCommand": null,
+          "codePresenceCommands": [],
+          "readOnlyDiscoveryCommands": [],
+          "acceptanceCommands": []
+        },
+        "stage": {
+          "type": "shared",
+          "readOnlyByDefault": true,
+          "baseUrls": ["https://stage.example.com"],
+          "healthChecks": [
+            {
+              "name": "app-health",
+              "description": "Example stage read-only health check",
+              "runner": "host",
+              "command": "curl -fsS https://stage.example.com/health",
+              "readOnly": true
+            }
+          ],
+          "authRefreshCommand": null,
+          "codePresenceCommands": [],
+          "readOnlyDiscoveryCommands": [],
+          "acceptanceCommands": []
+        }
+      },
+
+      "commits": {
+        "enabled": true,
+        "messageFormat": "{ticketKey}: {summary}",
+        "oneCommitPerRepo": true,
+        "skipIfNoChanges": true
+      },
+
+      "publishing": {
+        "enabled": true,
+        "provider": "github",
+        "defaultDraft": true,
+        "requireExplicitPublishFlag": true,
+        "publishFlag": "--publish-draft-mr",
+        "requireLocalPipelineGateBeforeCreate": true,
+        "blockCreateOnGateFailure": true,
+        "neverPushWithoutExplicitPublishRequest": true,
+        "descriptionTemplate": "references/templates.md#mr-description.md"
+      }
+    }
+  }
+}
