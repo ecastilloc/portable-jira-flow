@@ -178,6 +178,30 @@ Expected:
 - Reports stage statuses, stale/missing artifacts, blockers, publish status, mutation status, and `nextAction`.
 - Does not run ticket stages.
 
+### 11. Defect Child Reuses Parent Branch
+
+Input:
+
+```text
+portable-jira-flow inspect ABC-201 --parent ABC-200
+portable-jira-flow start ABC-201 --parent ABC-200 --use-parent-branch
+portable-jira-flow implement ABC-201
+portable-jira-flow verify ABC-201
+portable-jira-flow publish ABC-201 --publish-draft-mr
+portable-jira-flow status ABC-201
+```
+
+Expected:
+
+- `inspect` writes `run.json.relationships` and `relationship-map.md` with `relationshipType: defect`, `parentTicket: ABC-200`, `branchOwnerTicket: ABC-200`, and `workspaceOwnerTicket: ABC-200`.
+- `start` resolves the active worktree from the parent owner, verifies the expected parent branch, refreshes it from the configured base ref only in the selected worktree, and writes `base-refresh.md`.
+- Canonical source repos are not switched, reset, stashed, pulled, merged, or edited.
+- Child artifacts remain under `runs/ABC-201/`; parent artifacts are not copied into the child run.
+- `implement` records changed files against `ABC-201`.
+- `verify` stores child-scoped validation and evidence under `ABC-201`.
+- `publish` records existing parent-branch PR/MR metadata when available and does not create a duplicate shared-branch PR/MR without explicit allowed intent.
+- `status` shows parent ticket, branch owner, workspace owner, base refresh status, and any relationship warnings.
+
 ### 11. Cleanup Is Dry-Run By Default
 
 Input:
@@ -206,6 +230,26 @@ Expected:
 - `abc` maps to `start`.
 - Implementation runs only if explicitly configured or separately requested.
 - No validation, commit, push, publish, PR/MR creation, deployment, Jira transition, or environment mutation occurs.
+
+### 13b. Performance Ticket Gets Baseline And Comparison
+
+Input:
+
+```text
+portable-jira-flow inspect ABC-113
+portable-jira-flow start ABC-113
+portable-jira-flow verify ABC-113
+```
+
+Fixture: `ABC-113` has Jira issue type `Story` (generic, no dedicated "Performance" issue type) and summary `Optimize slow /reports endpoint`.
+
+Expected:
+
+- Classification resolves to `performance` via `ticketTypes.detection` keyword signals on the summary, despite the generic issue type — not via the ticket key prefix.
+- `inspect` writes `optimization-plan.md` (hypothesis, candidate change, correctness risk, measurement plan, regression guard) instead of a bug RCA.
+- `start` prepares the workspace with no code edits, and records `performance-baseline.md` / `run.json.performance.baseline` as `complete` when a `commands[]` entry tagged `"stage": "performanceBaseline"` is configured, or `not_configured` with a warning (never blocking) when it is not.
+- `verify` records `performance-comparison.md` / `run.json.performance.comparison` with a verdict (`improved`/`no_regression`/`regressed`/`inconclusive`/`not_configured`) and does not fail validation on a `regressed` result unless a `regressionThresholds` value is configured for the affected metric.
+- Re-running the existing bug-fixture cases (2–3) against a `Bug`-issuetype ticket produces byte-identical branch prefix, evidence requirement, and stage output to before this change — confirming no regression to bug-like handling.
 
 ### 13. Artifact Registry Coverage
 

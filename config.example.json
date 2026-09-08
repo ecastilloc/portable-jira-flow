@@ -6,10 +6,10 @@
     "primaryCommands": {
       "help": ["help"],
       "doctor": ["doctor"],
-      "inspect": ["context", "classification", "reproductionHypothesis", "readinessCheck", "plan"],
-      "start": ["context", "classification", "reproductionHypothesis", "readinessCheck", "plan", "prepareWorkspace"],
+      "inspect": ["context", "classification", "reproductionHypothesis", "optimizationHypothesis", "readinessCheck", "plan"],
+      "start": ["context", "classification", "reproductionHypothesis", "optimizationHypothesis", "readinessCheck", "plan", "prepareWorkspace", "reproductionEvidence", "performanceBaseline"],
       "implement": ["implementation"],
-      "verify": ["validation", "manualValidation"],
+      "verify": ["validation", "manualValidation", "verificationEvidence", "performanceComparison"],
       "ready": ["environmentReadiness", "qaGuide"],
       "accept": ["environmentAcceptance"],
       "publish": ["prePublishValidation", "publishDraft"],
@@ -40,6 +40,10 @@
       "--validate": "verify",
       "manual-validation": "verify",
       "--manual-validation": "verify",
+      "--capture-reproduction-evidence": "start",
+      "--record-before": "start",
+      "--capture-verification-evidence": "verify",
+      "--record-after": "verify",
       "env-ready": "ready",
       "ready-for-testing": "ready",
       "--env-ready": "ready",
@@ -66,29 +70,38 @@
       "publishDraft": ["--publish-draft-mr", "--create-draft-pr", "--create-draft-mr"],
       "allowMutations": ["--allow-mutations"],
       "forceImplement": ["--force-implement"],
+      "captureReproductionEvidence": ["--capture-reproduction-evidence", "--record-before"],
+      "captureVerificationEvidence": ["--capture-verification-evidence", "--record-after"],
       "profile": "--profile",
       "fromBranch": "--from-branch",
       "parentTicket": ["--parent", "--parent-ticket"],
       "parentBranch": "--parent-branch",
+      "useParentBranch": "--use-parent-branch",
+      "noParentBranch": "--no-parent-branch",
       "cleanupApply": "--apply"
     }
   },
   "stageRegistry": {
     "help": {"command": "help", "legacyAliases": [], "readOnly": true, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": false, "writesArtifacts": []},
     "doctor": {"command": "doctor", "legacyAliases": [], "readOnly": true, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": false, "writesArtifacts": []},
-    "context": {"command": "inspect", "legacyAliases": ["analyze", "--context"], "readOnly": true, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": false, "writesArtifacts": ["runState", "jira", "context"]},
+    "context": {"command": "inspect", "legacyAliases": ["analyze", "--context"], "readOnly": true, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": false, "writesArtifacts": ["runState", "jira", "context", "relationshipMap"]},
     "classification": {"command": "inspect", "legacyAliases": ["analyze"], "readOnly": true, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": false, "writesArtifacts": ["classification"]},
     "reproductionHypothesis": {"command": "inspect", "legacyAliases": ["repro", "--reproduce"], "readOnly": true, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": false, "writesArtifacts": ["rootCause"]},
+    "optimizationHypothesis": {"command": "inspect", "legacyAliases": [], "readOnly": true, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": false, "writesArtifacts": ["optimizationPlan"]},
     "readinessCheck": {"command": "inspect", "legacyAliases": ["--readiness-check"], "readOnly": true, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": false, "writesArtifacts": ["readiness", "blockers", "assumptions"]},
     "plan": {"command": "inspect", "legacyAliases": ["--plan"], "readOnly": true, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": false, "writesArtifacts": ["implementationPlan", "validationPlan"]},
-    "prepareWorkspace": {"command": "start", "legacyAliases": ["branch", "--prepare-branches"], "readOnly": false, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": true, "writesArtifacts": ["repoMap", "workspaceMap", "baseSnapshot", "worktreeSafety"]},
-    "implementation": {"command": "implement", "legacyAliases": ["code", "--implement"], "readOnly": false, "mayEditCode": true, "mayMutateEnvironment": false, "requiresExplicitUserIntent": true, "writesArtifacts": ["runState", "implementationPlan"]},
+    "prepareWorkspace": {"command": "start", "legacyAliases": ["branch", "--prepare-branches"], "readOnly": false, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": true, "writesArtifacts": ["repoMap", "workspaceMap", "relationshipMap", "baseRefresh", "baseSnapshot", "worktreeSafety"]},
+    "reproductionEvidence": {"command": "start", "legacyAliases": ["--capture-reproduction-evidence", "--record-before"], "readOnly": false, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": false, "writesArtifacts": ["reproductionEvidence", "evidenceManifest", "playwrightEvidenceConfig", "reproductionVideo"]},
+    "performanceBaseline": {"command": "start", "legacyAliases": [], "readOnly": false, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": false, "writesArtifacts": ["performanceBaseline"]},
+    "implementation": {"command": "implement", "legacyAliases": ["code", "--implement"], "readOnly": false, "mayEditCode": true, "mayMutateEnvironment": false, "requiresExplicitUserIntent": true, "writesArtifacts": ["runState", "implementationPlan", "implementationSummary"]},
     "validation": {"command": "verify", "legacyAliases": ["check", "--validate"], "readOnly": false, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": true, "writesArtifacts": ["validationResults"]},
     "manualValidation": {"command": "verify", "legacyAliases": ["manual-validation", "--manual-validation"], "readOnly": false, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": true, "writesArtifacts": ["manualValidation"]},
+    "verificationEvidence": {"command": "verify", "legacyAliases": ["--capture-verification-evidence", "--record-after"], "readOnly": false, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": false, "writesArtifacts": ["verificationEvidence", "evidenceManifest", "playwrightEvidenceConfig", "verificationVideo", "verificationScreenshot"]},
+    "performanceComparison": {"command": "verify", "legacyAliases": [], "readOnly": false, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": false, "writesArtifacts": ["performanceComparison"]},
     "environmentReadiness": {"command": "ready", "legacyAliases": ["env-ready", "ready-for-testing"], "readOnly": true, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": true, "writesArtifacts": ["environmentReadiness"]},
     "qaGuide": {"command": "ready", "legacyAliases": ["qa-guide", "validation-guide"], "readOnly": true, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": true, "writesArtifacts": ["qaGuide", "qaGuideAllEnvs"]},
-    "environmentAcceptance": {"command": "accept", "legacyAliases": ["acceptance-validation"], "readOnly": false, "mayEditCode": false, "mayMutateEnvironment": true, "requiresExplicitUserIntent": true, "writesArtifacts": ["environmentAcceptance"]},
-    "prePublishValidation": {"command": "publish", "legacyAliases": ["pre-publish-validation", "publish-check"], "readOnly": false, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": true, "writesArtifacts": ["prePublishValidation", "qaVideo"]},
+    "environmentAcceptance": {"command": "accept", "legacyAliases": ["acceptance-validation"], "readOnly": false, "mayEditCode": false, "mayMutateEnvironment": true, "requiresExplicitUserIntent": true, "writesArtifacts": ["environmentAcceptance", "verificationEvidence", "evidenceManifest", "verificationVideo", "verificationScreenshot"]},
+    "prePublishValidation": {"command": "publish", "legacyAliases": ["pre-publish-validation", "publish-check"], "readOnly": false, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": true, "writesArtifacts": ["prePublishValidation", "qaVideo", "evidenceManifest"]},
     "publishDraft": {"command": "publish", "legacyAliases": ["--publish-draft-mr"], "readOnly": false, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": true, "writesArtifacts": ["mrDescription"]},
     "finalReport": {"command": "report", "legacyAliases": ["complete", "--final-report"], "readOnly": false, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": true, "writesArtifacts": ["definitionOfDone", "finalSummary", "artifactIndex"]},
     "status": {"command": "status", "legacyAliases": [], "readOnly": true, "mayEditCode": false, "mayMutateEnvironment": false, "requiresExplicitUserIntent": true, "writesArtifacts": []},
@@ -97,20 +110,35 @@
   "artifactRegistry": {
     "runState": {"path": "run.json", "producer": "all", "consumers": ["all"], "sourceOfTruth": true, "derived": false, "userFacing": false, "privacyLevel": "private", "committable": false, "retention": "keep"},
     "artifactIndex": {"path": "artifact-index.md", "producer": "report", "consumers": ["status", "cleanup", "report"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
+    "legacyArtifactIndex": {"path": "legacy-artifact-index.md", "producer": "migration", "consumers": ["status", "cleanup", "report", "doctor"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
+    "legacyMigrationManifest": {"path": "migration-manifests/migration-manifest-{timestamp}.json", "producer": "migration", "consumers": ["status", "cleanup", "report", "doctor"], "sourceOfTruth": false, "derived": false, "userFacing": false, "privacyLevel": "private", "committable": false, "retention": "keep"},
     "jira": {"path": "jira.json", "producer": "inspect", "consumers": ["inspect", "verify", "ready", "report"], "sourceOfTruth": false, "derived": false, "userFacing": false, "privacyLevel": "secret-redacted", "committable": false, "retention": "keep"},
     "context": {"path": "context.md", "producer": "inspect", "consumers": ["implement", "verify", "report"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
     "repoMap": {"path": "repo-map.md", "producer": "start", "consumers": ["implement", "verify"], "sourceOfTruth": false, "derived": true, "userFacing": false, "privacyLevel": "internal", "committable": false, "retention": "keep"},
     "workspaceMap": {"path": "workspace-map.md", "producer": "start", "consumers": ["implement", "verify", "publish"], "sourceOfTruth": false, "derived": true, "userFacing": false, "privacyLevel": "internal", "committable": false, "retention": "keep"},
+    "relationshipMap": {"path": "relationship-map.md", "producer": "inspect", "consumers": ["start", "implement", "verify", "publish", "report", "status"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
+    "baseRefresh": {"path": "base-refresh.md", "producer": "start", "consumers": ["implement", "verify", "publish", "report", "status"], "sourceOfTruth": false, "derived": true, "userFacing": false, "privacyLevel": "internal", "committable": false, "retention": "keep"},
     "baseSnapshot": {"path": "base-snapshot.md", "producer": "inspect", "consumers": ["start", "implement"], "sourceOfTruth": false, "derived": true, "userFacing": false, "privacyLevel": "internal", "committable": false, "retention": "keep"},
     "classification": {"path": "classification.md", "producer": "inspect", "consumers": ["implement", "report"], "sourceOfTruth": false, "derived": true, "userFacing": false, "privacyLevel": "internal", "committable": false, "retention": "keep-latest"},
     "rootCause": {"path": "root-cause.md", "producer": "inspect", "consumers": ["implement", "verify", "report"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
+    "optimizationPlan": {"path": "optimization-plan.md", "producer": "inspect", "consumers": ["implement", "verify", "report"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
     "readiness": {"path": "readiness-check.md", "producer": "inspect", "consumers": ["implement", "status", "report"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
     "implementationPlan": {"path": "implementation-plan.md", "producer": "inspect", "consumers": ["implement", "verify", "publish"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
+    "implementationSummary": {"path": "implementation-summary.md", "producer": "implement", "consumers": ["verify", "publish", "report", "status"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
     "blockers": {"path": "blockers.md", "producer": "all", "consumers": ["status", "report"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep-latest"},
     "assumptions": {"path": "assumptions.md", "producer": "inspect", "consumers": ["implement", "report"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep-latest"},
     "validationPlan": {"path": "validation-plan.md", "producer": "inspect", "consumers": ["verify", "publish"], "sourceOfTruth": false, "derived": true, "userFacing": false, "privacyLevel": "internal", "committable": false, "retention": "keep"},
     "validationResults": {"path": "validation-results.md", "producer": "verify", "consumers": ["publish", "report"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
     "manualValidation": {"path": "manual-validation-steps.md", "producer": "verify", "consumers": ["ready", "accept", "publish"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
+    "reproductionEvidence": {"path": "reproduction-evidence.md", "producer": "start", "consumers": ["verify", "publish", "report", "status"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "private", "committable": false, "retention": "keep"},
+    "performanceBaseline": {"path": "performance-baseline.md", "producer": "start", "consumers": ["implement", "verify", "publish", "report", "status"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
+    "verificationEvidence": {"path": "verification-evidence.md", "producer": "verify", "consumers": ["publish", "report", "status"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "private", "committable": false, "retention": "keep"},
+    "performanceComparison": {"path": "performance-comparison.md", "producer": "verify", "consumers": ["publish", "report", "status"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
+    "evidenceManifest": {"path": "evidence-manifest.json", "producer": "start", "consumers": ["verify", "accept", "publish", "report", "status"], "sourceOfTruth": false, "derived": true, "userFacing": false, "privacyLevel": "private", "committable": false, "retention": "keep"},
+    "playwrightEvidenceConfig": {"path": "playwright-evidence-{evidencePhase}.config.cjs", "producer": "start", "consumers": ["verify", "accept", "publish", "report", "status"], "sourceOfTruth": false, "derived": true, "userFacing": false, "privacyLevel": "private", "committable": false, "retention": "keep"},
+    "reproductionVideo": {"path": "{centralEvidenceRoot}/{ticketKey}/reproduction/reproduction-video-{ticketKey}.{ext}", "producer": "start", "consumers": ["verify", "publish", "report", "status"], "sourceOfTruth": false, "derived": false, "userFacing": true, "privacyLevel": "private", "committable": false, "retention": "manual-cleanup"},
+    "verificationVideo": {"path": "{centralEvidenceRoot}/{ticketKey}/verification/verification-video-{ticketKey}.{ext}", "producer": "verify", "consumers": ["publish", "report", "status"], "sourceOfTruth": false, "derived": false, "userFacing": true, "privacyLevel": "private", "committable": false, "retention": "manual-cleanup"},
+    "verificationScreenshot": {"path": "{centralEvidenceRoot}/{ticketKey}/verification/verification-screenshot-{ticketKey}.{ext}", "producer": "verify", "consumers": ["publish", "report", "status"], "sourceOfTruth": false, "derived": false, "userFacing": true, "privacyLevel": "private", "committable": false, "retention": "manual-cleanup"},
     "environmentReadiness": {"path": "environment-readiness-{environment}.md", "producer": "ready", "consumers": ["status", "report"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
     "qaGuide": {"path": "qa-validation-guide-{environment}.md", "producer": "ready", "consumers": ["accept", "report"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
     "qaGuideAllEnvs": {"path": "qa-validation-guide-all-envs.md", "producer": "ready", "consumers": ["report"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
@@ -184,6 +212,14 @@
         "ticketWorkspaceRoot": "~/work/tickets",
         "ticketWorkspaceFormat": "{ticketKey}/{repoName}"
       },
+      "artifacts": {
+        "runsRoot": "~/work/.portable-jira-flow/runs",
+        "legacyArchiveRoot": "~/work/.portable-jira-flow/legacy-runs",
+        "migrationManifestRoot": "~/work/.portable-jira-flow/migration-manifests",
+        "legacyImportPolicy": "archive-only",
+        "runLayout": "ticket",
+        "nonCommittable": true
+      },
       "branching": {
         "nameFormat": "{branchPrefix}/{ticketKey}",
         "dirtyStrategy": "backup-branch",
@@ -198,7 +234,39 @@
           "refactor": "refactor",
           "test-only": "test",
           "chore": "chore",
+          "performance": "performance",
           "unknown": "feature"
+        }
+      },
+      "relationships": {
+        "enabled": true,
+        "relationshipTypes": ["standalone", "defect", "follow-up"],
+        "defaultRelationshipType": "standalone",
+        "relationshipTypeAliases": {
+          "defect": ["Defect"],
+          "follow-up": ["Follow-up"]
+        },
+        "detectParentFrom": ["fields.parent.key", "fields.parent.fields.key", "linkedTickets.parent"],
+        "parentRequiredForTypes": ["defect"],
+        "reuseParentWorkspaceForTypes": ["defect"],
+        "reuseParentBranchForTypes": ["defect"],
+        "branchOwnerTicketSource": "parent-for-defects",
+        "workspaceOwnerTicketSource": "parent-for-defects",
+        "fallbackWhenNoParent": "standalone-with-warning",
+        "baseRefresh": {
+          "enabled": true,
+          "strategy": "merge",
+          "remote": "origin",
+          "baseBranch": "main",
+          "fetchRemote": true,
+          "runOnStartForTypes": ["defect"],
+          "stopOnConflict": true
+        },
+        "safety": {
+          "requireParentRunWhenAvailable": false,
+          "requireBranchMatchesOwner": true,
+          "requireWorkspaceMatchesOwner": true,
+          "stopWhenParentBranchAttachedElsewhere": true
         }
       },
       "analysis": {
@@ -223,13 +291,43 @@
           "spike": ["Spike", "Research"],
           "refactor": ["Refactor", "Tech Debt", "Technical Debt"],
           "test-only": ["Test", "QA", "Automation", "Test-only"],
-          "chore": ["Chore", "Maintenance"]
+          "chore": ["Chore", "Maintenance"],
+          "performance": ["Performance", "Optimization", "Performance Improvement"]
         },
+        "canonicalTypes": ["feature", "bug", "regression", "production-bug", "hotfix", "spike", "refactor", "test-only", "chore", "performance", "unknown"],
         "bugLikeTypes": ["bug", "regression", "production-bug", "hotfix"],
+        "performanceLikeTypes": ["performance"],
         "reproduction": {
           "attemptLocalReproduction": true,
           "stopIfCannotReproduce": false,
           "commands": []
+        },
+        "performance": {
+          "attemptLocalBaseline": true,
+          "stopIfNoBaselineCommand": false,
+          "metrics": ["responseTimeMs", "queryCount", "payloadBytes"],
+          "regressionThresholds": {}
+        },
+        "typeOverrideFlags": {
+          "--bug": "bug",
+          "--hotfix": "hotfix",
+          "--production-bug": "production-bug",
+          "--regression": "regression",
+          "--test-only": "test-only",
+          "--performance": "performance"
+        },
+        "detection": {
+          "primaryField": "fields.issuetype.name",
+          "fieldsToConsider": ["fields.issuetype.name", "fields.summary", "fields.description", "fields.labels", "fields.components", "linkedTickets"],
+          "secondarySignals": ["fields.labels", "fields.components"],
+          "weakFallbackSignals": ["fields.summary"],
+          "keywordSignals": {
+            "performance": ["optimize", "optimization", "slow", "latency", "timeout", "N+1", "p95", "p99", "performance"]
+          },
+          "parentSummaryKeywords": {
+            "performance": ["Performance Backlog", "Performance Epic"]
+          },
+          "conflictBehavior": "unknown-with-open-question"
         }
       },
       "commands": [
@@ -259,6 +357,34 @@
           "artifacts": ["coverage/"],
           "nonCommittableArtifacts": ["coverage/"],
           "backupBeforeRun": true,
+          "compareOnFailure": true
+        },
+        {
+          "name": "endpoint-baseline-timing",
+          "stage": "performanceBaseline",
+          "repo": "app",
+          "command": "curl -w '%{time_total}\\n' -o /dev/null -s http://localhost:3000{performanceTarget}",
+          "runner": "host",
+          "workdir": "{selectedWorkspacePath}",
+          "mutability": "read-only",
+          "requiredForPublish": false,
+          "artifacts": [],
+          "nonCommittableArtifacts": [],
+          "backupBeforeRun": false,
+          "compareOnFailure": false
+        },
+        {
+          "name": "endpoint-comparison-timing",
+          "stage": "performanceComparison",
+          "repo": "app",
+          "command": "curl -w '%{time_total}\\n' -o /dev/null -s http://localhost:3000{performanceTarget}",
+          "runner": "host",
+          "workdir": "{selectedWorkspacePath}",
+          "mutability": "read-only",
+          "requiredForPublish": false,
+          "artifacts": [],
+          "nonCommittableArtifacts": [],
+          "backupBeforeRun": false,
           "compareOnFailure": true
         }
       ],
@@ -304,14 +430,34 @@
         "enabled": false,
         "mode": "isolated-playwright",
         "workspacePath": "~/work/app-e2e",
+        "basePlaywrightConfig": "playwright.config.js",
         "defaultEnvironment": "local",
         "specDir": "tests",
         "specFilePattern": "{ticketKeyLower}-{shortSummary}.spec.ts",
-        "runCommandTemplate": "npx playwright test {specPaths}",
+        "runCommandTemplate": "npx playwright test {specPaths} --config {playwrightConfigPath} --output {evidenceOutputDir}",
         "createMissingTicketSpecs": true,
         "generatedSpecSource": "manual-validation-steps.md",
         "mapSpecsToAcceptanceCriteria": true,
         "commitGeneratedSpecs": false
+      },
+      "evidence": {
+        "enabled": true,
+        "storage": "central",
+        "missingPolicy": "warn",
+        "centralEvidenceRoot": null,
+        "requireReproductionForTicketTypes": ["bug", "regression", "production-bug", "hotfix"],
+        "mediaExtensions": ["webm", "mp4", "mov"],
+        "playwright": {
+          "generatedConfigPattern": "playwright-evidence-{evidencePhase}.config.cjs",
+          "outputDirPattern": "{centralEvidenceRoot}/{ticketKey}/{evidencePhase}",
+          "video": "on",
+          "screenshot": "only-on-failure",
+          "trace": "retain-on-failure"
+        },
+        "phaseCommandTemplates": {
+          "reproduction": "npx playwright test {specPaths} --config {playwrightConfigPath} --output {evidenceOutputDir}",
+          "verification": "npx playwright test {specPaths} --config {playwrightConfigPath} --output {evidenceOutputDir}"
+        }
       },
       "commits": {
         "enabled": false,
@@ -326,6 +472,11 @@
         "defaultDraft": true,
         "requiredPrePublishValidation": true,
         "descriptionTemplate": "references/templates.md#mr-description.md",
+        "descriptionTemplateByTicketType": {
+          "bug": "references/templates/mr-bug-description.md",
+          "performance": "references/templates/mr-performance-description.md"
+        },
+        "descriptionTemplateFallback": "references/templates.md#mr-description.md",
         "providerGuard": {
           "source": "profile.provider"
         }

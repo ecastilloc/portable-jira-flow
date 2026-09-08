@@ -16,12 +16,14 @@ Read this file before executing any ticket stage beyond `help`.
 | Fetch Jira | Profile config and credentials are available. |
 | Fetch git refs | Stage allows read-only base inspection or branch prep. |
 | Create/reuse worktree | `start` or later stage requires it and policy allows it. |
+| Merge latest base into an active branch | `start` is preparing an allowed child-defect relationship, the profile enables relationship base refresh, the merge runs only in the selected ticket worktree, and the user requested or policy requires that relationship flow. |
 | Edit application code | `implement` is explicit and readiness permits it. |
 | Run validation | Command is configured or explicitly requested. |
 | Commit | User explicitly requests commit and profile allows commits. |
 | Push/create PR/MR | User explicitly requests draft publish and all required gates pass. |
 | Mutate local disposable data | Acceptance/manual validation requires it and profile allows it. |
 | Mutate shared environment data | Only `accept` with `--allow-mutations` and explicit environment support. |
+| Capture local browser evidence | Evidence is enabled, commands are configured, output stays in approved local artifact roots, and the stage allows validation/evidence execution. |
 
 Never deploy, restart services, run migrations, seed data, transition Jira, or mutate production unless a profile explicitly supports the exact action and the user names the target environment. The default behavior is to stop.
 
@@ -35,6 +37,10 @@ In `git-worktree` mode:
 - Dirty canonical repos are recorded, not modified.
 - Dirty selected ticket worktrees follow `dirtyStrategy`.
 - Preserve untracked files.
+- Parent/child defect reuse may resolve the active worktree from `workspaceOwnerTicket` and the active branch from `branchOwnerTicket`. Record that ownership in `run.json.relationships` and `workspace-map.md`.
+- A relationship base refresh merge is allowed only inside the selected ticket worktree. Never run it in a canonical source repo.
+- Before a child defect reuses a parent branch, verify the selected branch matches the expected parent-owned branch. Stop on mismatch unless the user explicitly selects a different relationship strategy.
+- If the configured base refresh merge conflicts, stop with blockers and record `base-refresh.md`. Do not resolve conflicts or continue implementation unless the user explicitly asks for conflict resolution.
 
 When a branch is already attached to a different worktree, stop and report the path. Do not move, remove, reset, or reuse it implicitly.
 
@@ -73,5 +79,7 @@ Resolve the target before applying an identity guard:
 ## Generated Artifacts
 
 - Local run artifacts, logs, screenshots, videos, traces, downloaded files, and raw Jira payloads are non-committable by default.
+- Playwright evidence recordings are private local artifacts and must stay under configured run or central evidence roots.
+- Evidence capture does not permit broader environment mutation; `accept` still needs `--allow-mutations` for ticket-scoped mutating checkpoints.
 - Generated E2E specs created after commit block publishing when they are intended to be tracked.
 - `artifact-index.md` is derived from `run.json` and the artifact registry.

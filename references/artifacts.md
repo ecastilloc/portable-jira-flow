@@ -4,13 +4,33 @@ Use this file when creating, refreshing, reading, reporting, indexing, or cleani
 
 ## Artifact Root
 
-For meaningful ticket stages, create artifacts under:
+For meaningful ticket stages, create artifacts under the selected profile's configured run root when present:
+
+```text
+{profile.artifacts.runsRoot}/{ticketKey}/
+```
+
+If `profile.artifacts.runsRoot` is absent, fall back to:
 
 ```text
 .portable-jira-flow/runs/{ticketKey}/
 ```
 
-Prefer the invocation git root. If unavailable, use the first selected repository root. If no repository root is available, ask before writing artifacts.
+Resolve fallback roots from the invocation git root first, then the first selected repository root. If no configured or fallback root is available, ask before writing artifacts. Prefer workspace-level or central run roots over repository-local folders when the local profile defines them.
+
+## Central State Layout
+
+When a profile uses a central state root, keep active workflow state and imported history separate:
+
+```text
+{portableStateRoot}/runs/{ticketKey}/
+{portableStateRoot}/legacy-runs/{sourceSlug}/{ticketKey}/
+{portableStateRoot}/migration-manifests/
+```
+
+`runs/{ticketKey}/` contains the current portable workflow state. `legacy-runs/{sourceSlug}/{ticketKey}/` contains archived copies of historical artifacts from older skill folders or repository-local run roots. `migration-manifests/` contains checksum manifests proving what was copied and from where.
+
+Imported legacy archives are audit material, not active workflow state. Do not rewrite their `run.json` files to the portable schema, do not use their markdown as current source of truth, and do not collapse duplicate ticket keys from different sources. Keep the source slug so repeated ticket keys remain attributable.
 
 ## Source Of Truth
 
@@ -49,18 +69,72 @@ Prefer the invocation git root. If unavailable, use the first selected repositor
   "artifacts": [],
   "artifactRegistrySnapshot": {},
   "workspaces": {},
+  "relationships": {
+    "relationshipType": "standalone",
+    "parentTicket": null,
+    "childTickets": [],
+    "branchOwnerTicket": "ABC-123",
+    "workspaceOwnerTicket": "ABC-123",
+    "sharedBranch": false,
+    "sharedWorkspace": false,
+    "branch": {
+      "expected": "feature/ABC-123",
+      "actual": "feature/ABC-123",
+      "targetBase": "origin/main",
+      "baseRefresh": {
+        "required": false,
+        "status": "not_requested",
+        "strategy": "merge",
+        "command": null,
+        "updatedAt": null,
+        "warnings": []
+      }
+    },
+    "warnings": []
+  },
   "classification": {},
+  "implementation": {
+    "filesChanged": []
+  },
   "readiness": {},
   "risk": "Unknown",
   "validation": {},
   "prePublishValidation": {},
   "environmentReadiness": {},
   "environmentAcceptance": {},
+  "evidence": {
+    "policy": {
+      "enabled": true,
+      "storage": "central",
+      "missingPolicy": "warn",
+      "requireReproductionForTicketTypes": ["bug", "regression", "production-bug", "hotfix"]
+    },
+    "reproduction": {
+      "required": false,
+      "status": "not_requested",
+      "artifacts": [],
+      "warnings": [],
+      "command": null,
+      "environment": "local",
+      "updatedAt": null
+    },
+    "verification": {
+      "required": false,
+      "status": "not_requested",
+      "artifacts": [],
+      "warnings": [],
+      "command": null,
+      "environment": "local",
+      "updatedAt": null
+    }
+  },
   "finalReport": {}
 }
 ```
 
-Do not store secrets in `run.json`.
+The `relationships` and `evidence` objects are optional for older historical runs. New runs should write `relationships` when relationship config is present or when Jira/flags identify parent context. New runs should write `evidence` when evidence config is present. Do not store secrets in `run.json`.
+
+Evidence phase `status` values should use the stage status vocabulary when possible: `pending`, `in_progress`, `complete`, `blocked`, `failed`, `skipped`, or `not_requested`. Use warnings for missing media under the default `warn` policy rather than converting the whole workflow to blocked.
 
 ## Artifact Registry
 
@@ -70,20 +144,32 @@ The config `artifactRegistry` should cover at least:
 |---|---|---:|---:|---|
 | `run.json` | source of truth | no | no | keep |
 | `artifact-index.md` | derived | yes | no | keep |
+| `legacy-artifact-index.md` | derived legacy archive index | yes | no | keep |
+| `migration-manifests/migration-manifest-{timestamp}.json` | source migration manifest | no | no | keep |
 | `jira.json` | redacted source | no | no | keep |
 | `context.md` | derived | yes | no | keep |
 | `repo-map.md` | derived | internal | no | keep |
 | `workspace-map.md` | derived | internal | no | keep |
+| `relationship-map.md` | derived relationship index | yes | no | keep |
+| `base-refresh.md` | derived parent-branch base refresh record | internal | no | keep |
 | `base-snapshot.md` | derived | internal | no | keep |
 | `classification.md` | derived | internal | no | keep-latest |
 | `root-cause.md` | derived | yes for bugs | no | keep |
 | `readiness-check.md` | derived | yes | no | keep |
 | `implementation-plan.md` | derived | yes | no | keep |
+| `implementation-summary.md` | derived | yes | no | keep |
 | `blockers.md` | derived | yes | no | keep-latest |
 | `assumptions.md` | derived | yes | no | keep-latest |
 | `validation-plan.md` | derived | internal | no | keep |
 | `validation-results.md` | derived | yes | no | keep |
 | `manual-validation-steps.md` | derived/source for QA/E2E | yes | no | keep |
+| `reproduction-evidence.md` | derived evidence summary | yes | no | keep |
+| `verification-evidence.md` | derived evidence summary | yes | no | keep |
+| `evidence-manifest.json` | derived evidence index | no | no | keep |
+| `playwright-evidence-{evidencePhase}.config.cjs` | generated capture config | internal | no | keep |
+| `reproduction-video-{ticketKey}.{ext}` | generated media | yes | no | manual-cleanup |
+| `verification-video-{ticketKey}.{ext}` | generated media | yes | no | manual-cleanup |
+| `verification-screenshot-{ticketKey}.{ext}` | generated media | yes | no | manual-cleanup |
 | `environment-readiness-{environment}.md` | derived | yes | no | keep |
 | `qa-validation-guide-{environment}.md` | derived | yes | no | keep |
 | `qa-validation-guide-all-envs.md` | derived | yes | no | keep |
@@ -100,17 +186,43 @@ The config `artifactRegistry` should cover at least:
 
 Additional generated logs, traces, screenshots, downloads, raw Jira snapshots, and related-ticket files must be registered before final output or cleanup.
 
+## Legacy Artifact Imports
+
+Use `scripts/migrate_legacy_artifacts.py` when centralizing older run artifacts. The importer supports:
+
+- `inventory`: checksum and count legacy sources without writing files
+- `copy`: copy each source into `legacy-runs/{sourceSlug}/{ticketKey}/`, then write a migration manifest and refresh `legacy-artifact-index.md`
+- `verify`: re-check copied files against a migration manifest
+
+Source roots must be run roots whose immediate children are ticket folders. The importer may copy any historical file type, including older `run.json` contracts, markdown summaries, screenshots, videos, traces, logs, and draft publish notes. It does not delete, normalize, redact, or reinterpret source files.
+
+For each import, record:
+
+- source root
+- source slug
+- target archive path
+- ticket count
+- file count and bytes
+- skipped non-regular files
+- SHA-256 checksum per copied file
+- copy result, unchanged count, and conflicts
+
+If a target file already exists with the same checksum, treat it as unchanged. If it exists with a different checksum, stop before overwriting and surface the conflict. To intentionally replace a legacy archive, the user must explicitly request an archive maintenance action.
+
 ## Artifact Index
 
 Generate `artifact-index.md` from `run.json.artifacts` and the registry. Include:
 
 - artifact path
+- source root or configured storage root when known
 - producer stage
+- command or stage source
 - consumer stages
 - source-of-truth or derived
 - user-facing or internal
 - privacy level
 - committable status
+- generated timestamp when known
 - freshness
 - retention
 - exists/missing
@@ -124,7 +236,12 @@ Mark artifacts stale when:
 - the artifact references an old HEAD after commit or validation
 - stage status changed after artifact generation
 - selected workspace, environment, or profile changed
+- parent ticket, branch owner, workspace owner, expected branch, or shared-workspace policy changed
+- relationship base refresh is older than the latest configured base ref fetched during `start`
 - manual validation is older than implementation changes
+- reproduction evidence was captured after implementation began instead of before code edits
+- verification evidence is older than the latest implementation, validation, committed HEAD, or environment acceptance state it claims to verify
+- a registered central evidence file is missing at status/report time
 
 `status` should surface stale artifacts and recommend the next action to refresh them.
 
@@ -145,5 +262,7 @@ Never clean:
 - source files
 - committed files
 - current `run.json`
+- imported legacy archives and migration manifests unless the user explicitly requests legacy archive maintenance
 - user-owned untracked work
 - artifacts required by active blockers or current validation evidence
+- current reproduction or verification evidence referenced by `run.json.evidence` unless the user explicitly requests evidence cleanup

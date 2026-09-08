@@ -16,6 +16,9 @@ REQUIRED_REFERENCES = [
     "safety.md",
     "configuration.md",
     "artifacts.md",
+    "relationships.md",
+    "evidence.md",
+    "performance.md",
     "templates.md",
     "publishing.md",
 ]
@@ -36,11 +39,25 @@ REQUIRED_COMMANDS = {
 REQUIRED_ARTIFACTS = {
     "runState",
     "artifactIndex",
+    "legacyArtifactIndex",
+    "legacyMigrationManifest",
     "jira",
     "context",
+    "relationshipMap",
+    "baseRefresh",
     "implementationPlan",
+    "implementationSummary",
     "validationResults",
     "manualValidation",
+    "reproductionEvidence",
+    "verificationEvidence",
+    "evidenceManifest",
+    "optimizationPlan",
+    "performanceBaseline",
+    "performanceComparison",
+    "reproductionVideo",
+    "verificationVideo",
+    "verificationScreenshot",
     "environmentReadiness",
     "environmentAcceptance",
     "prePublishValidation",
@@ -190,12 +207,67 @@ def validate_config(root: Path) -> None:
         if artifact.get("committable") is not False:
             raise ValidationError(f"artifactRegistry.{name}: public run artifacts must be non-committable by default")
 
-    publishing = config["profiles"]["example"]["publishing"]
+    example_profile = config["profiles"]["example"]
+    profile_artifacts = example_profile.get("artifacts")
+    if not profile_artifacts:
+        raise ValidationError("profiles.example.artifacts: missing artifact root config")
+    if not profile_artifacts.get("runsRoot"):
+        raise ValidationError("profiles.example.artifacts.runsRoot: missing configured run root")
+    if profile_artifacts.get("runLayout") != "ticket":
+        raise ValidationError("profiles.example.artifacts.runLayout: must default to ticket")
+    if profile_artifacts.get("nonCommittable") is not True:
+        raise ValidationError("profiles.example.artifacts.nonCommittable: must be true")
+
+    evidence = example_profile.get("evidence")
+    if not evidence:
+        raise ValidationError("profiles.example.evidence: missing evidence config")
+    if evidence.get("enabled") is not True:
+        raise ValidationError("profiles.example.evidence.enabled: must be true in example contract")
+    if evidence.get("storage") != "central":
+        raise ValidationError("profiles.example.evidence.storage: must default to central")
+    if evidence.get("missingPolicy") != "warn":
+        raise ValidationError("profiles.example.evidence.missingPolicy: must default to warn")
+
+    relationships = example_profile.get("relationships")
+    if not relationships:
+        raise ValidationError("profiles.example.relationships: missing relationship config")
+    if relationships.get("enabled") is not True:
+        raise ValidationError("profiles.example.relationships.enabled: must be true in example contract")
+    if relationships.get("defaultRelationshipType") != "standalone":
+        raise ValidationError("profiles.example.relationships.defaultRelationshipType: must default to standalone")
+    if "defect" not in relationships.get("relationshipTypes", []):
+        raise ValidationError("profiles.example.relationships.relationshipTypes: must include defect")
+    if "defect" not in relationships.get("reuseParentBranchForTypes", []):
+        raise ValidationError("profiles.example.relationships.reuseParentBranchForTypes: must include defect")
+    base_refresh = relationships.get("baseRefresh", {})
+    if not isinstance(base_refresh, dict) or base_refresh.get("strategy") != "merge":
+        raise ValidationError("profiles.example.relationships.baseRefresh.strategy: must default to merge")
+
+    config_text = (root / "config.example.json").read_text(encoding="utf-8")
+    for placeholder in [
+        "{ticketKey}",
+        "{environment}",
+        "{specPaths}",
+        "{evidencePhase}",
+        "{evidenceOutputDir}",
+        "{playwrightConfigPath}",
+    ]:
+        if placeholder not in config_text:
+            raise ValidationError(f"config.example.json: missing E2E/evidence placeholder {placeholder}")
+
+    publishing = example_profile["publishing"]
     template_path, _, fragment = publishing["descriptionTemplate"].partition("#")
     if not (root / template_path).exists():
         raise ValidationError(f"config.example.json: missing description template file {template_path}")
     if fragment and fragment not in (root / template_path).read_text(encoding="utf-8"):
         raise ValidationError(f"config.example.json: missing description template fragment {fragment}")
+
+    for ticket_type, template_ref in publishing.get("descriptionTemplateByTicketType", {}).items():
+        by_type_path, _, by_type_fragment = template_ref.partition("#")
+        if not (root / by_type_path).exists():
+            raise ValidationError(f"config.example.json: missing description template file {by_type_path} for ticket type {ticket_type!r}")
+        if by_type_fragment and by_type_fragment not in (root / by_type_path).read_text(encoding="utf-8"):
+            raise ValidationError(f"config.example.json: missing description template fragment {by_type_fragment} for ticket type {ticket_type!r}")
 
     json.loads(strip_jsonc((root / "config.local.example.jsonc").read_text(encoding="utf-8")))
 
@@ -221,6 +293,15 @@ def validate_references(root: Path) -> None:
             raise ValidationError(f"empty reference: {path}")
 
 
+def validate_scripts(root: Path) -> None:
+    for name in ["evidence.py", "migrate_legacy_artifacts.py"]:
+        path = root / "scripts" / name
+        if not path.exists():
+            raise ValidationError(f"missing script: {path}")
+        if path.stat().st_size == 0:
+            raise ValidationError(f"empty script: {path}")
+
+
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", default=None, help="Skill root. Defaults to this script's parent skill.")
@@ -231,6 +312,7 @@ def main(argv: list[str]) -> int:
     try:
         validate_frontmatter(root / "SKILL.md")
         validate_references(root)
+        validate_scripts(root)
         validate_adapters(root)
         validate_config(root)
         if args.public:

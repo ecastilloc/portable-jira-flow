@@ -1,0 +1,83 @@
+{
+  "assessmentDate": "2026-09-08",
+  "status": "analysis-only; proposed runtime changes are not implemented",
+  "baseRevision": "a2b7f2bfbd7dc6e5da1d9ebb9b9d7bc494ed494e",
+  "baselineIncludesPreExistingUncommittedChanges": true,
+  "sourceScope": "Pre-existing public files returned by git ls-files -co --exclude-standard; private ignored overlays and runs excluded.",
+  "publicSourceSha256": {
+    ".gitignore": "b32af50bb9cfbee1e6fd1127d6a08a2efa8b2bc8f1d6b9fb26107ad06987cdfa",
+    "SKILL.md": "1d56debe2320c922898410029750b5d33cf25c99eecbfc75f8c5bbbf29b0b702",
+    "adapters/templates/claude.SKILL.md.tmpl": "6193d52db40a8a681a23a8fee882133497874e1730ae4dc64a2dce04c93a3f3a",
+    "adapters/templates/codex.SKILL.md.tmpl": "59856dca987e0c13b0bb243ec19bce39805ff74ff9dd51b57751f232b19e5269",
+    "adapters/templates/cursor.SKILL.md.tmpl": "7a66f74fca0d37e77ff4dfaeaa0a03b0a8c494b09c27206a628464e834291501",
+    "agents/openai.yaml": "d44dfbfdc50cc1fd6155b60bca738008f5cf9e0e6bcdd9e238db854e8ec00fb4",
+    "config.example.json": "1f6559319f745c4de9177e21713c50fcfaa379d829c0ba43625ef7d89235bd9a",
+    "config.local.example.jsonc": "d9f16fa594c33e662419e53579dcfae3a9ac36ea2b825d2b82a31bc61e229c86",
+    "config.schema.json": "d9334abd1bc67a29ca3a02d7d35d8e7c32218a4bf2dc53062da8021ccf163969",
+    "evals/manual-cases.md": "9819b688e76fb0b561c99bfe809c4ee9f9807245355feae2565547e6f327bf2a",
+    "references/artifacts.md": "a333b03432dca476656eb5fad12d4778d2e32e4383a9936f0962cac4904f3898",
+    "references/commands.md": "f8f1cf21edbcd9b457bab75ccfc185e8ab3b4a1ba7f929cc5b3043663f7d4ad8",
+    "references/configuration.md": "d4791d602b6aa71cd187d2a998647b71dc619a13bbddcb7260f2970d2fb52ada",
+    "references/evidence.md": "b51be6f8704e8458f136782f9e699655505ccfc3c51c65616e1ad26ac4ab1602",
+    "references/performance.md": "a74343bc3e0d77765d8249c3593fe97b11114f9e896f5d8116b7a6db1f88f669",
+    "references/publishing.md": "b556c6ddf0aa4c9c6fe51df28cb42b619eba66c1c124ed1160dd845f1050a34b",
+    "references/relationships.md": "4f0ff8389580bfd86b0964e9af2b91d6f8f9b12c7bd671b2d7c2c1baa8c78da5",
+    "references/safety.md": "cc6306750434cdfab7296e9b13a3b7b7f27edf92ae9b02a48196d4947d720688",
+    "references/templates.md": "e5c6153b21cc11f55df9b8671d1a1dd20e92f70e9d96acd480abebf2cb16ab44",
+    "references/templates/mr-bug-description.md": "8795c76039755c52b853cfed3b6f8b9ae9b4c972fcc7fe336f48f703ed9f827b",
+    "references/templates/mr-description.md": "bfb99d2f88207dedc68733903b4ee83df37e4834c544dffe1db07bfd423c83b0",
+    "references/templates/mr-performance-description.md": "b5395b3d1247afb2b481781393fde88a7d421173a43954dd8cede2a7bd5a4eef",
+    "scripts/evidence.py": "88ba284aae354555e01c69a46db8463c6f81bc54eb0a77d25882dafcb453b2d7",
+    "scripts/install.py": "e61626ac17dff46192f95e97cf623a17dee49460c6411242167b50a8aacfabe3",
+    "scripts/migrate_legacy_artifacts.py": "8de6dda9dbed65faa3be8b14e8b86b2f61209f565d33c957641793b9be3b140a",
+    "scripts/validate.py": "ec16af039c1aea03c6b372bca510af41d479a39673c1b9aed950ce4545fa19bc"
+  },
+  "book": {
+    "path": "../books/spec-driven-development.pdf",
+    "bytes": 3511082,
+    "pdfPages": 167,
+    "sha256": "0efa00b9a886d4eac94cd6f1d53d8e020ffdea24fde7799bb8a1374e60fd0a3e"
+  },
+  "probes": {
+    "baseline_public_package": {
+      "exitCode": 0,
+      "output": "[OK] portable-jira-flow validation passed"
+    },
+    "wrong_boolean_type": {
+      "exitCode": 0,
+      "output": "[OK] portable-jira-flow validation passed"
+    },
+    "unknown_stage_reference": {
+      "exitCode": 0,
+      "output": "[OK] portable-jira-flow validation passed"
+    },
+    "example_only_load": {
+      "resolvedDefault": "fixture-example",
+      "profiles": [
+        "fixture-example"
+      ]
+    }
+  },
+  "probeMethod": {
+    "baseline_public_package": "Copy only the pre-existing public file inventory to a temporary directory and run python3 scripts/validate.py --root <fixture> --public.",
+    "wrong_boolean_type": "In a fresh copy of config.example.json, replace stageRegistry.implementation.readOnly with the string false, then run the same validator. Observed exit 0; the declared schema requires a boolean.",
+    "unknown_stage_reference": "Restore the example config, append nonexistentStage to invocation.primaryCommands.verify, then run the same validator. Observed exit 0; the registry has no such stage.",
+    "example_only_load": "Import scripts/evidence.py without executing main; call load_config on a fresh directory containing only config.example.json with defaultProfile fixture-example and a corresponding profile. Observed that default and profile were loaded."
+  },
+  "limits": [
+    "No private configuration or real tickets inspected.",
+    "No Jira requests or environment commands executed.",
+    "No workflow execution benchmark or business acceptance validation performed.",
+    "The public scan is the existing package checker, not authorization to distribute the supplied book."
+  ],
+  "preservation": {
+    "preExistingPublicFileCount": 26,
+    "changedPreExistingFiles": []
+  },
+  "finalDocumentationChecks": {
+    "publicPackageValidatorExitCode": 0,
+    "publicPackageValidatorOutput": "[OK] portable-jira-flow validation passed",
+    "existingPublicFilesUnchanged": true,
+    "pdfMatchesSource": true
+  }
+}

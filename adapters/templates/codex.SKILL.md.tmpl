@@ -26,6 +26,8 @@ For local setup, inspect ignored config/profile overlays only when needed:
 
 Treat `config.example.json` and `config.local.example.jsonc` as templates only. Preserve the shared safety contract: never print secrets or private local config values, never publish or mutate environments without explicit allowed intent, and keep `run.json` authoritative.
 
+For publish work, follow the shared MR description and target-branch rules: keep the MR body reviewer-facing rather than local-run focused, and honor configured provider/project target branches unless the user explicitly names another target.
+
 Codex invocation examples:
 
 ```text

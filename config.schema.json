@@ -62,16 +62,94 @@
         "gitIdentity": {"type": "object"},
         "provider": {"type": "object"},
         "workspaces": {"type": "object"},
+        "artifacts": {"$ref": "#/$defs/profileArtifacts"},
         "branching": {"type": "object"},
+        "relationships": {"$ref": "#/$defs/relationships"},
         "analysis": {"type": "object"},
         "ticketTypes": {"type": "object"},
         "commands": {"type": "array", "items": {"type": "object"}},
         "environments": {"type": "object"},
         "referenceFiles": {"type": "object"},
         "e2e": {"type": "object"},
+        "evidence": {"$ref": "#/$defs/evidence"},
         "commits": {"type": "object"},
         "publishing": {"type": "object"}
       }
+    },
+    "profileArtifacts": {
+      "type": "object",
+      "properties": {
+        "runsRoot": {"type": "string"},
+        "legacyArchiveRoot": {"type": "string"},
+        "migrationManifestRoot": {"type": "string"},
+        "legacyImportPolicy": {"enum": ["archive-only", "disabled"]},
+        "runLayout": {"enum": ["ticket", "source-ticket"]},
+        "nonCommittable": {"type": "boolean"}
+      },
+      "additionalProperties": true
+    },
+    "relationships": {
+      "type": "object",
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "relationshipTypes": {
+          "type": "array",
+          "items": {"enum": ["standalone", "defect", "follow-up"]}
+        },
+        "defaultRelationshipType": {"enum": ["standalone", "defect", "follow-up"]},
+        "relationshipTypeAliases": {
+          "type": "object",
+          "additionalProperties": {"type": "array", "items": {"type": "string"}}
+        },
+        "detectParentFrom": {"type": "array", "items": {"type": "string"}},
+        "parentRequiredForTypes": {"type": "array", "items": {"type": "string"}},
+        "reuseParentWorkspaceForTypes": {"type": "array", "items": {"type": "string"}},
+        "reuseParentBranchForTypes": {"type": "array", "items": {"type": "string"}},
+        "branchOwnerTicketSource": {"enum": ["current", "parent", "parent-for-defects"]},
+        "workspaceOwnerTicketSource": {"enum": ["current", "parent", "parent-for-defects"]},
+        "fallbackWhenNoParent": {"enum": ["standalone", "standalone-with-warning", "blocked"]},
+        "baseRefresh": {
+          "type": "object",
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "strategy": {"enum": ["merge", "none"]},
+            "remote": {"type": "string"},
+            "baseBranch": {"type": "string"},
+            "fetchRemote": {"type": "boolean"},
+            "runOnStartForTypes": {"type": "array", "items": {"type": "string"}},
+            "stopOnConflict": {"type": "boolean"}
+          },
+          "additionalProperties": true
+        },
+        "safety": {
+          "type": "object",
+          "properties": {
+            "requireParentRunWhenAvailable": {"type": "boolean"},
+            "requireBranchMatchesOwner": {"type": "boolean"},
+            "requireWorkspaceMatchesOwner": {"type": "boolean"},
+            "stopWhenParentBranchAttachedElsewhere": {"type": "boolean"}
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "evidence": {
+      "type": "object",
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "storage": {"enum": ["central", "run", "custom"]},
+        "missingPolicy": {"enum": ["warn", "block", "off"]},
+        "centralEvidenceRoot": {"type": ["string", "null"]},
+        "requireReproductionForTicketTypes": {"type": "array", "items": {"type": "string"}},
+        "mediaExtensions": {"type": "array", "items": {"type": "string"}},
+        "playwright": {"type": "object"},
+        "phaseCommandTemplates": {
+          "type": "object",
+          "additionalProperties": {"type": "string"}
+        }
+      },
+      "additionalProperties": true
     }
   }
 }

@@ -78,6 +78,12 @@
         "ticketWorkspaceFormat": "{ticketKey}/{repoName}"
       },
 
+      "artifacts": {
+        "runsRoot": "~/work/.portable-jira-flow/runs",
+        "runLayout": "ticket",
+        "nonCommittable": true
+      },
+
       "branching": {
         "nameFormat": "{branchPrefix}/{ticketKey}",
         "dirtyStrategy": "backup-branch",
@@ -92,7 +98,89 @@
           "refactor": "refactor",
           "test-only": "test",
           "chore": "chore",
+          // Same branch-per-type convention covers performance/optimization work;
+          // point it at "feature" instead if you don't want a dedicated prefix.
+          "performance": "performance",
           "unknown": "feature"
+        }
+      },
+
+      // Optional parent/child behavior. Keep regular tickets standalone; only
+      // relationship types listed below reuse a parent branch or workspace.
+      "relationships": {
+        "enabled": true,
+        "relationshipTypes": ["standalone", "defect", "follow-up"],
+        "defaultRelationshipType": "standalone",
+        "relationshipTypeAliases": {
+          "defect": ["Defect"],
+          "follow-up": ["Follow-up"]
+        },
+        "detectParentFrom": ["fields.parent.key", "fields.parent.fields.key", "linkedTickets.parent"],
+        "parentRequiredForTypes": ["defect"],
+        "reuseParentWorkspaceForTypes": ["defect"],
+        "reuseParentBranchForTypes": ["defect"],
+        "branchOwnerTicketSource": "parent-for-defects",
+        "workspaceOwnerTicketSource": "parent-for-defects",
+        "fallbackWhenNoParent": "standalone-with-warning",
+        "baseRefresh": {
+          "enabled": true,
+          "strategy": "merge",
+          "remote": "origin",
+          // Override this in your ignored local profile when your team uses a
+          // release branch instead of main as the parent-branch refresh base.
+          "baseBranch": "main",
+          "fetchRemote": true,
+          "runOnStartForTypes": ["defect"],
+          "stopOnConflict": true
+        },
+        "safety": {
+          "requireParentRunWhenAvailable": false,
+          "requireBranchMatchesOwner": true,
+          "requireWorkspaceMatchesOwner": true,
+          "stopWhenParentBranchAttachedElsewhere": true
+        }
+      },
+
+      // Ticket type classification is content-driven, never derived from the
+      // ticket key prefix (see references/configuration.md#ticket-type-classification).
+      // This is what lets a "TD-1223"-style endpoint-optimization ticket, or an
+      // "ABC-9001" filed under a generic "Story" issue type, both resolve to the
+      // "performance" canonical type from their summary/parent-epic wording.
+      "ticketTypes": {
+        "aliases": {
+          "bug": ["Bug", "Defect"],
+          "performance": ["Performance", "Optimization"]
+        },
+        "canonicalTypes": ["feature", "bug", "regression", "production-bug", "hotfix", "spike", "refactor", "test-only", "chore", "performance", "unknown"],
+        "bugLikeTypes": ["bug", "regression", "production-bug", "hotfix"],
+        "performanceLikeTypes": ["performance"],
+        "performance": {
+          "attemptLocalBaseline": true,
+          "stopIfNoBaselineCommand": false,
+          "metrics": ["responseTimeMs", "queryCount", "payloadBytes"],
+          // Leave empty until you have a real SLO; comparison still reports raw
+          // before/after numbers without failing a threshold.
+          "regressionThresholds": {}
+        },
+        "typeOverrideFlags": {
+          "--bug": "bug",
+          "--performance": "performance"
+        },
+        "detection": {
+          "primaryField": "fields.issuetype.name",
+          "fieldsToConsider": ["fields.issuetype.name", "fields.summary", "fields.description", "fields.labels", "fields.components", "linkedTickets"],
+          "secondarySignals": ["fields.labels", "fields.components"],
+          "weakFallbackSignals": ["fields.summary"],
+          // Weak-fallback keyword hints used only when issuetype/labels don't resolve a type.
+          "keywordSignals": {
+            "performance": ["optimize", "optimization", "slow", "latency", "timeout", "N+1"]
+          },
+          // Catches tickets filed under a themed parent epic (e.g. a shared
+          // performance backlog) regardless of the ticket's own issue type.
+          "parentSummaryKeywords": {
+            "performance": ["Performance Backlog"]
+          },
+          "conflictBehavior": "unknown-with-open-question"
         }
       },
 
@@ -114,6 +202,43 @@
           "requiredForPublish": true,
           "artifacts": [],
           "nonCommittableArtifacts": ["coverage/", "test-results/"],
+          "backupBeforeRun": false,
+          "compareOnFailure": true
+        },
+        // Performance baseline/comparison commands are ordinary commands[] entries
+        // tagged with the performanceBaseline/performanceComparison stage, exactly
+        // like unit-tests is tagged "validation" above. {performanceTarget} is
+        // substituted at runtime from optimization-plan.md's Target field (it
+        // can't be hardcoded once, since it's different per ticket). Point
+        // "command" at whatever this team actually uses -- curl timing, a load
+        // test tool, or (for a bigger lift) a small script that also reads your
+        // app's own profiler/APM data, the way profiles.local/<company>/scripts/
+        // could hold a helper for that.
+        {
+          "name": "endpoint-baseline-timing",
+          "stage": "performanceBaseline",
+          "repo": "app",
+          "command": "curl -w '%{time_total}\\n' -o /dev/null -s http://localhost:3000{performanceTarget}",
+          "runner": "host",
+          "workdir": "{selectedWorkspacePath}",
+          "mutability": "read-only",
+          "requiredForPublish": false,
+          "artifacts": [],
+          "nonCommittableArtifacts": [],
+          "backupBeforeRun": false,
+          "compareOnFailure": false
+        },
+        {
+          "name": "endpoint-comparison-timing",
+          "stage": "performanceComparison",
+          "repo": "app",
+          "command": "curl -w '%{time_total}\\n' -o /dev/null -s http://localhost:3000{performanceTarget}",
+          "runner": "host",
+          "workdir": "{selectedWorkspacePath}",
+          "mutability": "read-only",
+          "requiredForPublish": false,
+          "artifacts": [],
+          "nonCommittableArtifacts": [],
           "backupBeforeRun": false,
           "compareOnFailure": true
         }
@@ -158,6 +283,41 @@
         }
       },
 
+      "e2e": {
+        "enabled": true,
+        "mode": "isolated-playwright",
+        "workspacePath": "~/work/app-e2e",
+        "basePlaywrightConfig": "playwright.config.js",
+        "defaultEnvironment": "local",
+        "specDir": "tests",
+        "specFilePattern": "{ticketKeyLower}-{shortSummary}.spec.ts",
+        "runCommandTemplate": "npx playwright test {specPaths} --config {playwrightConfigPath} --output {evidenceOutputDir}",
+        "createMissingTicketSpecs": true,
+        "generatedSpecSource": "manual-validation-steps.md",
+        "mapSpecsToAcceptanceCriteria": true,
+        "commitGeneratedSpecs": false
+      },
+
+      "evidence": {
+        "enabled": true,
+        "storage": "central",
+        "missingPolicy": "warn",
+        "centralEvidenceRoot": "~/work/jira-flow-artifacts/evidence",
+        "requireReproductionForTicketTypes": ["bug", "regression", "production-bug", "hotfix"],
+        "mediaExtensions": ["webm", "mp4", "mov"],
+        "playwright": {
+          "generatedConfigPattern": "playwright-evidence-{evidencePhase}.config.cjs",
+          "outputDirPattern": "{centralEvidenceRoot}/{ticketKey}/{evidencePhase}",
+          "video": "on",
+          "screenshot": "only-on-failure",
+          "trace": "retain-on-failure"
+        },
+        "phaseCommandTemplates": {
+          "reproduction": "npx playwright test {specPaths} --config {playwrightConfigPath} --output {evidenceOutputDir}",
+          "verification": "npx playwright test {specPaths} --config {playwrightConfigPath} --output {evidenceOutputDir}"
+        }
+      },
+
       "commits": {
         "enabled": true,
         "messageFormat": "{ticketKey}: {summary}",
@@ -174,7 +334,13 @@
         "requireLocalPipelineGateBeforeCreate": true,
         "blockCreateOnGateFailure": true,
         "neverPushWithoutExplicitPublishRequest": true,
-        "descriptionTemplate": "references/templates.md#mr-description.md"
+        "descriptionTemplate": "references/templates.md#mr-description.md",
+        // Optional per-type override (see references/publishing.md#description-template-selection).
+        "descriptionTemplateByTicketType": {
+          "bug": "references/templates/mr-bug-description.md",
+          "performance": "references/templates/mr-performance-description.md"
+        },
+        "descriptionTemplateFallback": "references/templates.md#mr-description.md"
       }
     }
   }

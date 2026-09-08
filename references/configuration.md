@@ -49,7 +49,7 @@ Top-level config should contain:
 | `artifactRegistry` | Artifact purpose, producer, consumer, privacy, retention, and committable status. |
 | `invocation` | Primary commands and legacy aliases. |
 | `policy` | Enterprise gates and safety defaults. |
-| `profiles` | Profile-specific Jira, repositories, workspaces, commands, environments, E2E, commits, and publish settings. |
+| `profiles` | Profile-specific Jira, repositories, workspaces, relationships, artifact roots, commands, environments, E2E, evidence, commits, and publish settings. |
 
 `stageRegistry` and `artifactRegistry` are generic and should stay source-controlled. Company-specific commands, paths, URLs, and profile-pack references belong in ignored local overlays.
 
@@ -161,6 +161,71 @@ Workspace modes:
 
 In `git-worktree` mode, `ticketWorkspaceFormat` may use `{ticketKey}`, `{branchTicketKey}`, `{repoName}`, and `{profile}`.
 
+## Relationships
+
+Profiles may opt in to parent/child ticket behavior without changing regular standalone tickets:
+
+```json
+{
+  "relationships": {
+    "enabled": true,
+    "relationshipTypes": ["standalone", "defect", "follow-up"],
+    "defaultRelationshipType": "standalone",
+    "relationshipTypeAliases": {
+      "defect": ["Defect"],
+      "follow-up": ["Follow-up"]
+    },
+    "detectParentFrom": ["fields.parent.key", "fields.parent.fields.key", "linkedTickets.parent"],
+    "parentRequiredForTypes": ["defect"],
+    "reuseParentWorkspaceForTypes": ["defect"],
+    "reuseParentBranchForTypes": ["defect"],
+    "branchOwnerTicketSource": "parent-for-defects",
+    "workspaceOwnerTicketSource": "parent-for-defects",
+    "fallbackWhenNoParent": "standalone-with-warning",
+    "baseRefresh": {
+      "enabled": true,
+      "strategy": "merge",
+      "remote": "origin",
+      "baseBranch": "main",
+      "fetchRemote": true,
+      "runOnStartForTypes": ["defect"],
+      "stopOnConflict": true
+    },
+    "safety": {
+      "requireParentRunWhenAvailable": false,
+      "requireBranchMatchesOwner": true,
+      "requireWorkspaceMatchesOwner": true,
+      "stopWhenParentBranchAttachedElsewhere": true
+    }
+  }
+}
+```
+
+When `relationships.enabled` is false or absent, use existing standalone behavior. When it is true, `inspect` may discover a parent ticket from configured Jira fields or explicit parent flags and write `run.json.relationships`. `start` may resolve `{branchTicketKey}` and the selected worktree from the parent only for relationship types listed in `reuseParentBranchForTypes` and `reuseParentWorkspaceForTypes`.
+
+`baseRefresh` controls whether `start` refreshes a child defect's shared parent branch from a configured base ref before code edits. Public examples should use generic branch names; team-specific base branches belong in ignored local overlays. If older local profiles use `branching.parentTicketBranching`, preserve it as a compatibility input, but write new state to `run.json.relationships`.
+
+## Artifact Roots
+
+Profiles may set a workspace-level run root so generated workflow artifacts are not stored inside application repositories:
+
+```json
+{
+  "artifacts": {
+    "runsRoot": "~/work/.portable-jira-flow/runs",
+    "legacyArchiveRoot": "~/work/.portable-jira-flow/legacy-runs",
+    "migrationManifestRoot": "~/work/.portable-jira-flow/migration-manifests",
+    "legacyImportPolicy": "archive-only",
+    "runLayout": "ticket",
+    "nonCommittable": true
+  }
+}
+```
+
+When `artifacts.runsRoot` is present, create and read run folders as `{runsRoot}/{ticketKey}/`. If it is absent, fall back to the repository-local `.portable-jira-flow/runs/{ticketKey}/` behavior documented in `references/artifacts.md`.
+
+`legacyArchiveRoot` and `migrationManifestRoot` are optional handles for centralized imports from older workflow skills. New ticket work must not write active state there. With `legacyImportPolicy: "archive-only"`, imported artifacts are retained for audit and status/report context but are not upgraded in place or treated as current stage state. Use `"disabled"` when a profile should ignore historical archives entirely.
+
 ## Git Identity And Provider Guards
 
 Ticket profiles may require a specific work identity for commits and pushes:
@@ -204,6 +269,143 @@ Validation, readiness, acceptance, and publish commands must be configured. Each
 
 Do not run broad tests, migrations, seeders, installers, deployments, restarts, or publish commands unless explicitly configured and allowed by stage and policy.
 
+Command templates for E2E and evidence capture may use:
+
+| Placeholder | Meaning |
+|---|---|
+| `{ticketKey}` | Original ticket key. |
+| `{environment}` | Target environment for the command. |
+| `{specPaths}` | Ticket-scoped E2E spec paths. |
+| `{evidencePhase}` | `reproduction` or `verification`. |
+| `{evidenceOutputDir}` | Output directory for Playwright videos, traces, screenshots, and reports. |
+| `{playwrightConfigPath}` | Run-local Playwright wrapper config path. |
+
+## E2E
+
+Profile E2E config describes how to map `manual-validation-steps.md` into ticket-scoped browser scenarios. Keep project-specific workspace paths and commands in local overlays.
+
+Common keys:
+
+```json
+{
+  "e2e": {
+    "enabled": true,
+    "mode": "isolated-playwright",
+    "workspacePath": "~/work/app-e2e",
+    "basePlaywrightConfig": "playwright.config.js",
+    "defaultEnvironment": "local",
+    "specDir": "tests",
+    "specFilePattern": "{ticketKeyLower}-{shortSummary}.spec.ts",
+    "runCommandTemplate": "npx playwright test {specPaths} --config {playwrightConfigPath} --output {evidenceOutputDir}",
+    "createMissingTicketSpecs": true,
+    "generatedSpecSource": "manual-validation-steps.md",
+    "mapSpecsToAcceptanceCriteria": true,
+    "commitGeneratedSpecs": false
+  }
+}
+```
+
+`basePlaywrightConfig` is optional and may be relative to `workspacePath`.
+When omitted, evidence preparation may auto-detect a CommonJS Playwright config
+such as `playwright.config.js` or `playwright.config.cjs` in the E2E workspace.
+Ticket-scoped `{specPaths}` must resolve to specific specs or directories; an
+empty value must not be treated as permission to run the entire E2E suite.
+
+## Ticket Type Classification
+
+Profiles classify each ticket into a canonical internal type, independent of the ticket key prefix. `ticketPrefixes` on a profile identifies which profile owns a ticket key; it never determines the ticket's *type*. Type classification instead comes from `ticketTypes`:
+
+```json
+{
+  "ticketTypes": {
+    "aliases": {
+      "bug": ["Bug", "Defect"],
+      "performance": ["Performance", "Optimization"]
+    },
+    "canonicalTypes": ["feature", "bug", "performance", "unknown"],
+    "bugLikeTypes": ["bug", "regression", "production-bug", "hotfix"],
+    "performanceLikeTypes": ["performance"],
+    "typeOverrideFlags": {
+      "--bug": "bug",
+      "--performance": "performance"
+    },
+    "detection": {
+      "primaryField": "fields.issuetype.name",
+      "fieldsToConsider": ["fields.issuetype.name", "fields.summary", "fields.description", "fields.labels", "fields.components", "linkedTickets"],
+      "secondarySignals": ["fields.labels", "fields.components"],
+      "weakFallbackSignals": ["fields.summary"],
+      "keywordSignals": {
+        "performance": ["optimize", "slow", "latency", "timeout", "N+1"]
+      },
+      "parentSummaryKeywords": {
+        "performance": ["Performance Backlog"]
+      },
+      "conflictBehavior": "unknown-with-open-question"
+    }
+  }
+}
+```
+
+- `aliases`: literal Jira `issuetype.name` values that map to each canonical type. Not every company has a dedicated issue type for every kind of work (e.g. performance tickets are often filed as a generic "Story"), so this alone may be insufficient.
+- `canonicalTypes`: the closed set of types this profile actually distinguishes. Classification that cannot be resolved to one of these is `unknown`, not a guess.
+- `bugLikeTypes` / `performanceLikeTypes`: which canonical types trigger bug-oriented (reproduction evidence, RCA) or performance-oriented (baseline/comparison, optimization plan) stages. A type can be added to `canonicalTypes` without adding it to either list if it needs neither treatment.
+- `typeOverrideFlags`: explicit CLI flags a user can pass to force classification when detection is wrong or ambiguous.
+- `detection`: the signal-resolution order when `aliases` alone doesn't resolve a type. `primaryField` is checked first; `secondarySignals` (labels/components) and `weakFallbackSignals` (free-text summary/description) are checked next; `keywordSignals` maps a canonical type to keywords that count as evidence for that type in the weak-fallback text; `parentSummaryKeywords` does the same against a linked parent ticket's summary, useful when tickets are filed under a themed epic (e.g. a shared performance backlog) regardless of the ticket's own issue type. `conflictBehavior: "unknown-with-open-question"` means: if signals disagree, classify as `unknown` and raise an open question rather than silently pick one.
+
+This mechanism is what lets a ticket be recognized as performance work from its summary and parent epic even when its Jira issue type is a generic "Story" — see `references/performance.md`.
+
+## Performance Measurement
+
+Profile performance config controls the optimization-plan/baseline/comparison stages described in `references/performance.md`. Public examples must remain generic; machine-specific benchmark tooling belongs in ignored local overlays.
+
+Common keys:
+
+```json
+{
+  "ticketTypes": {
+    "performanceLikeTypes": ["performance"],
+    "performance": {
+      "attemptLocalBaseline": true,
+      "stopIfNoBaselineCommand": false,
+      "metrics": ["responseTimeMs", "queryCount", "payloadBytes"],
+      "regressionThresholds": {}
+    }
+  }
+}
+```
+
+Baseline and comparison commands are not a separate config surface — they are ordinary entries in the profile's `commands[]` array (see "Commands" below) tagged `"stage": "performanceBaseline"` or `"stage": "performanceComparison"`, exactly like `lint`/`unit-tests` are tagged `"stage": "validation"`. When no such command is configured for a performance-like ticket, the baseline/comparison stages record `not_configured` with a warning; they never block on a missing benchmark tool under the default `warn` policy.
+
+These commands may use one additional placeholder: `{performanceTarget}`, the endpoint/query/job under test resolved from `optimization-plan.md`'s Target field. Unlike `{ticketKey}` or `{selectedWorkspacePath}`, this value is ticket-specific and cannot be hardcoded once in config — the assistant substitutes it at runtime before running the configured command. A profile's `command` value is free to combine it with a fixed base URL or wrap it in its own script; see `references/performance.md`.
+
+## Evidence Capture
+
+Profile evidence config controls before/after Playwright evidence. Public examples must remain generic. Machine-specific central evidence roots belong in ignored local overlays.
+
+Common keys:
+
+```json
+{
+  "evidence": {
+    "enabled": true,
+    "storage": "central",
+    "missingPolicy": "warn",
+    "centralEvidenceRoot": null,
+    "requireReproductionForTicketTypes": ["bug", "regression", "production-bug", "hotfix"],
+    "mediaExtensions": ["webm", "mp4", "mov"],
+    "playwright": {
+      "generatedConfigPattern": "playwright-evidence-{evidencePhase}.config.cjs",
+      "outputDirPattern": "{centralEvidenceRoot}/{ticketKey}/{evidencePhase}",
+      "video": "on",
+      "screenshot": "only-on-failure",
+      "trace": "retain-on-failure"
+    }
+  }
+}
+```
+
+`evidence.storage: "central"` writes media outside application repositories while keeping run-local summaries beside `run.json`. Missing evidence is a warning by default. Strengthen `missingPolicy` only in a local profile when the team wants evidence gaps to block publish or report workflows.
+
 ## Environments
 
 Define shared environment metadata once and reference it from readiness, QA guide, and acceptance behavior. `ready` treats every environment as read-only. `accept` requires `--allow-mutations` for configured mutating acceptance commands.
@@ -239,6 +441,9 @@ Adapters such as Confluence, Slack, Teams, related PR/MR, and related tickets de
 - credential handles present, not values
 - repo paths exist when configured
 - stage registry and artifact registry consistency
+- profile artifact root shape, including ignored-file coverage for any configured local run root
+- relationship config shape, parent discovery fields, branch/workspace owner policy, and base refresh policy when relationships are enabled
+- evidence config shape, storage root handle, media extensions, and E2E placeholder availability when evidence is enabled
 - local ignored-file coverage
 - command mutability metadata
 - publish policy and target-specific Git/provider guards
