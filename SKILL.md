@@ -37,6 +37,10 @@ Use these primary commands:
 
 Legacy command words are compatibility aliases only. Prefer primary command names in new output. See `references/commands.md`.
 
+## Opt-In V2 Pilot
+
+The behavior-contract pilot lives under `v2/` and is invoked separately as `portable-jira-flow-v2`. Do not apply v2 behavior unless the user invokes it or explicitly asks to pilot v2. V2 shares the selected local profile and writes separate v2 run artifacts; it must not rewrite v1 run state.
+
 ## Reference Routing
 
 Read only the reference files needed for the requested command:

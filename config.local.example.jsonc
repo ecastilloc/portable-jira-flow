@@ -84,6 +84,19 @@
         "nonCommittable": true
       },
 
+      // Optional v2 behavior-contract pilot. This shares the same profile
+      // repositories, Jira handles, commands, environments, evidence, commits,
+      // and provider rules while writing separate v2 run artifacts.
+      "workflowV2": {
+        "enabled": false,
+        "runNamespace": "v2",
+        "behaviorSpecs": {
+          "draftMode": "local-run-artifact",
+          "template": "v2/templates/behavior-spec.md",
+          "durableStorage": "explicit-policy-only"
+        }
+      },
+
       "branching": {
         "nameFormat": "{branchPrefix}/{ticketKey}",
         "dirtyStrategy": "backup-branch",

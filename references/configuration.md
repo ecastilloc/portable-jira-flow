@@ -6,13 +6,14 @@ Use this file for config loading, profile selection, schema expectations, polici
 
 Resolve `{skillRoot}` as the directory containing this skill's canonical `SKILL.md`. Load and merge config in this order:
 
-1. `{skillRoot}/config.json` when present.
-2. `{skillRoot}/config.local.json`.
-3. `{skillRoot}/profiles.local/*.json`.
-4. `{skillRoot}/profiles.local/*/profile.json`.
-5. `{skillRoot}/profiles/*.local.json`.
+1. `{skillRoot}/config.defaults.json`.
+2. `{skillRoot}/config.json` when present.
+3. `{skillRoot}/config.local.json`.
+4. `{skillRoot}/profiles.local/*.json`.
+5. `{skillRoot}/profiles.local/*/profile.json`.
+6. `{skillRoot}/profiles/*.local.json`.
 
-Base config is merged first; local overlays win. Local overlays may contain private profile names, paths, command templates, provider settings, and env-file references. Never print local values that look private.
+Base config is merged first; local overlays win. `config.defaults.json` contains executable generic defaults such as invocation, stage registry, artifact registry, and policy defaults. It must not contain executable local profiles. Local overlays may contain private profile names, paths, command templates, provider settings, and env-file references. Never print local values that look private.
 
 The distributable tracked example is `config.example.json`. For commented local-overlay examples, use `config.local.example.jsonc`; it is documentation only and is not loaded by default. Copy relevant sections into ignored `config.local.json` or ignored files under `profiles.local/` when setting up a machine-specific profile.
 
@@ -52,6 +53,8 @@ Top-level config should contain:
 | `profiles` | Profile-specific Jira, repositories, workspaces, relationships, artifact roots, commands, environments, E2E, evidence, commits, and publish settings. |
 
 `stageRegistry` and `artifactRegistry` are generic and should stay source-controlled. Company-specific commands, paths, URLs, and profile-pack references belong in ignored local overlays.
+
+Optional v2 behavior-contract settings belong under a profile's `workflowV2` key. The stable v1 flow ignores this key. V2 reads the same selected profile for Jira, repository, command, environment, evidence, commit, and provider settings, then uses `workflowV2` only for behavior-spec defaults.
 
 ## Stage Registry
 
@@ -224,6 +227,14 @@ Profiles may set a workspace-level run root so generated workflow artifacts are 
 
 When `artifacts.runsRoot` is present, create and read run folders as `{runsRoot}/{ticketKey}/`. If it is absent, fall back to the repository-local `.portable-jira-flow/runs/{ticketKey}/` behavior documented in `references/artifacts.md`.
 
+The opt-in v2 pilot writes separate active state below the same root:
+
+```text
+{runsRoot}/v2/{ticketKey}/
+```
+
+This keeps v1 and v2 runs side by side while sharing the same local profile. V2 may read v1 artifacts as historical context, but must not rewrite v1 `run.json`.
+
 `legacyArchiveRoot` and `migrationManifestRoot` are optional handles for centralized imports from older workflow skills. New ticket work must not write active state there. With `legacyImportPolicy: "archive-only"`, imported artifacts are retained for audit and status/report context but are not upgraded in place or treated as current stage state. Use `"disabled"` when a profile should ignore historical archives entirely.
 
 ## Git Identity And Provider Guards
@@ -357,6 +368,26 @@ This mechanism is what lets a ticket be recognized as performance work from its 
 ## Performance Measurement
 
 Profile performance config controls the optimization-plan/baseline/comparison stages described in `references/performance.md`. Public examples must remain generic; machine-specific benchmark tooling belongs in ignored local overlays.
+
+## Workflow V2
+
+Profiles may opt in to behavior-contract defaults without duplicating repository or environment configuration:
+
+```json
+{
+  "workflowV2": {
+    "enabled": true,
+    "runNamespace": "v2",
+    "behaviorSpecs": {
+      "draftMode": "local-run-artifact",
+      "template": "v2/templates/behavior-spec.md",
+      "durableStorage": "explicit-policy-only"
+    }
+  }
+}
+```
+
+`enabled` controls whether v2 should use the profile for behavior-contract runs. `draftMode: local-run-artifact` writes draft specs under the v2 run folder. `durableStorage: explicit-policy-only` means v2 must not commit or update durable product specs unless the profile later names an approved destination and the user explicitly requests that work.
 
 Common keys:
 

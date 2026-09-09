@@ -73,7 +73,8 @@
         "e2e": {"type": "object"},
         "evidence": {"$ref": "#/$defs/evidence"},
         "commits": {"type": "object"},
-        "publishing": {"type": "object"}
+        "publishing": {"type": "object"},
+        "workflowV2": {"$ref": "#/$defs/workflowV2"}
       }
     },
     "profileArtifacts": {
@@ -147,6 +148,23 @@
         "phaseCommandTemplates": {
           "type": "object",
           "additionalProperties": {"type": "string"}
+        }
+      },
+      "additionalProperties": true
+    },
+    "workflowV2": {
+      "type": "object",
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "runNamespace": {"type": "string"},
+        "behaviorSpecs": {
+          "type": "object",
+          "properties": {
+            "draftMode": {"enum": ["local-run-artifact"]},
+            "template": {"type": "string"},
+            "durableStorage": {"enum": ["explicit-policy-only", "configured-durable-path"]}
+          },
+          "additionalProperties": true
         }
       },
       "additionalProperties": true

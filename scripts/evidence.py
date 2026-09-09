@@ -11,6 +11,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from pjf.config_loader import load_runtime_config
+from pjf.config_loader import resolve_profile as resolve_loaded_profile
+from pjf.state_writer import write_json_atomic
+
 
 SKILL_NAME = "portable-jira-flow"
 PHASES = {"reproduction", "verification"}
@@ -41,52 +45,15 @@ def read_json(path: Path, default: Any) -> Any:
 
 
 def write_json(path: Path, data: Any) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, indent=2, sort_keys=False) + "\n", encoding="utf-8")
-
-
-def deep_merge(base: dict[str, Any], overlay: dict[str, Any]) -> dict[str, Any]:
-    merged = dict(base)
-    for key, value in overlay.items():
-        if isinstance(value, dict) and isinstance(merged.get(key), dict):
-            merged[key] = deep_merge(merged[key], value)
-        else:
-            merged[key] = value
-    return merged
+    write_json_atomic(path, data)
 
 
 def load_config(skill_root: Path) -> dict[str, Any]:
-    config: dict[str, Any] = {}
-    for path in [skill_root / "config.example.json", skill_root / "config.json", skill_root / "config.local.json"]:
-        if path.exists():
-            config = deep_merge(config, read_json(path, {}))
-
-    profiles_dir = skill_root / "profiles.local"
-    if profiles_dir.exists():
-        for path in sorted(profiles_dir.glob("*.json")):
-            config = deep_merge(config, read_json(path, {}))
-        for path in sorted(profiles_dir.glob("*/profile.json")):
-            config = deep_merge(config, read_json(path, {}))
-
-    profiles = skill_root / "profiles"
-    if profiles.exists():
-        for path in sorted(profiles.glob("*.local.json")):
-            config = deep_merge(config, read_json(path, {}))
-
-    return config
+    return load_runtime_config(skill_root).config
 
 
 def resolve_profile(config: dict[str, Any], requested: str | None) -> tuple[str | None, dict[str, Any]]:
-    profiles = config.get("profiles") or {}
-    if requested:
-        return requested, profiles.get(requested, {})
-    default = config.get("defaultProfile")
-    if default:
-        return default, profiles.get(default, {})
-    if len(profiles) == 1:
-        name = next(iter(profiles))
-        return name, profiles[name]
-    return None, {}
+    return resolve_loaded_profile(config, requested)
 
 
 def expand_path(value: str | None, relative_to: Path | None = None) -> Path | None:

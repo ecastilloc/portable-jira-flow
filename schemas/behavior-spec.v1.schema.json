@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/portable-jira-flow/behavior-spec.v1.schema.json",
+  "title": "Portable Jira Flow Behavior Spec V1",
+  "type": "object",
+  "required": ["id", "status", "changeRequests", "requirements", "scenarios", "provenance"],
+  "properties": {
+    "id": {"type": "string"},
+    "status": {"enum": ["draft", "reviewed", "retired"]},
+    "changeRequests": {"type": "array", "items": {"type": "string"}},
+    "requirements": {"type": "array", "items": {"type": "object"}},
+    "scenarios": {"type": "array", "items": {"type": "object"}},
+    "provenance": {"type": "array", "items": {"type": "object"}}
+  },
+  "additionalProperties": true
+}

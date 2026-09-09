@@ -143,6 +143,8 @@ The config `artifactRegistry` should cover at least:
 | Artifact | Source | User-facing | Committable | Retention |
 |---|---|---:|---:|---|
 | `run.json` | source of truth | no | no | keep |
+| `behavior-spec.md` | v2 behavior contract draft | yes | no | keep |
+| `behavior-coverage.json` | v2 scenario coverage | no | no | keep |
 | `artifact-index.md` | derived | yes | no | keep |
 | `legacy-artifact-index.md` | derived legacy archive index | yes | no | keep |
 | `migration-manifests/migration-manifest-{timestamp}.json` | source migration manifest | no | no | keep |
@@ -244,6 +246,18 @@ Mark artifacts stale when:
 - a registered central evidence file is missing at status/report time
 
 `status` should surface stale artifacts and recommend the next action to refresh them.
+
+## V2 State Isolation
+
+The opt-in v2 pilot writes active state under:
+
+```text
+{profile.artifacts.runsRoot}/v2/{ticketKey}/
+```
+
+When no configured run root exists, helpers may fall back to `.portable-jira-flow/runs/v2/{ticketKey}/` in the selected working root. V2 artifacts use the same non-committable default as v1 run artifacts. A v2 `behavior-spec.md` is a local draft until a profile explicitly configures durable storage and the user asks to update it.
+
+V2 status and publish checks use `run.json.behaviorSpec.digest` to decide whether implementation, verification, and derived summaries still match the selected behavior. Changing `behavior-spec.md` makes dependent results stale until refreshed.
 
 ## Cleanup
 

@@ -24,7 +24,7 @@ For local setup, inspect ignored config/profile overlays only when needed:
 {{SKILL_ROOT}}/profiles.local/
 ```
 
-Treat `config.example.json` and `config.local.example.jsonc` as templates only. Preserve the shared safety contract: never print secrets or private local config values, never publish or mutate environments without explicit allowed intent, and keep `run.json` authoritative.
+Treat `config.defaults.json` as the executable generic base. Treat `config.example.json` and `config.local.example.jsonc` as templates only. Preserve the shared safety contract: never print secrets or private local config values, never publish or mutate environments without explicit allowed intent, and keep `run.json` authoritative.
 
 Cursor invocation examples:
 

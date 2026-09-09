@@ -1,0 +1,1185 @@
+{
+  "schemaVersion": "1.0.0",
+  "defaultProfile": null,
+  "invocation": {
+    "normalizeUnicodeDashes": true,
+    "primaryCommands": {
+      "help": [
+        "help"
+      ],
+      "doctor": [
+        "doctor"
+      ],
+      "inspect": [
+        "context",
+        "classification",
+        "reproductionHypothesis",
+        "optimizationHypothesis",
+        "readinessCheck",
+        "plan"
+      ],
+      "start": [
+        "context",
+        "classification",
+        "reproductionHypothesis",
+        "optimizationHypothesis",
+        "readinessCheck",
+        "plan",
+        "prepareWorkspace",
+        "reproductionEvidence",
+        "performanceBaseline"
+      ],
+      "implement": [
+        "implementation"
+      ],
+      "verify": [
+        "validation",
+        "manualValidation",
+        "verificationEvidence",
+        "performanceComparison"
+      ],
+      "ready": [
+        "environmentReadiness",
+        "qaGuide"
+      ],
+      "accept": [
+        "environmentAcceptance"
+      ],
+      "publish": [
+        "prePublishValidation",
+        "publishDraft"
+      ],
+      "report": [
+        "finalReport"
+      ],
+      "status": [
+        "status"
+      ],
+      "cleanup": [
+        "cleanup"
+      ]
+    },
+    "legacyAliases": {
+      "analyze": "inspect",
+      "a": "inspect",
+      "--analyze": "inspect",
+      "--context": "inspect",
+      "--plan": "inspect",
+      "--readiness-check": "inspect",
+      "repro": "inspect",
+      "r": "inspect",
+      "--reproduce": "inspect",
+      "branch": "start",
+      "b": "start",
+      "--branch": "start",
+      "--prepare-branches": "start",
+      "code": "implement",
+      "c": "implement",
+      "--code": "implement",
+      "--implement": "implement",
+      "check": "verify",
+      "--check": "verify",
+      "--validate": "verify",
+      "manual-validation": "verify",
+      "--manual-validation": "verify",
+      "--capture-reproduction-evidence": "start",
+      "--record-before": "start",
+      "--capture-verification-evidence": "verify",
+      "--record-after": "verify",
+      "env-ready": "ready",
+      "ready-for-testing": "ready",
+      "--env-ready": "ready",
+      "--ready-for-testing": "ready",
+      "qa-guide": "ready",
+      "validation-guide": "ready",
+      "--qa-guide": "ready",
+      "--validation-guide": "ready",
+      "acceptance-validation": "accept",
+      "--acceptance-validation": "accept",
+      "pre-publish-validation": "publish",
+      "publish-check": "publish",
+      "--pre-publish-validation": "publish",
+      "--publish-check": "publish",
+      "complete": "report",
+      "--complete": "report",
+      "--final-report": "report",
+      "abc": "start",
+      "--abc": "start"
+    },
+    "explicitFlags": {
+      "commit": [
+        "commit",
+        "--commit"
+      ],
+      "noCommit": [
+        "--no-commit"
+      ],
+      "publishDraft": [
+        "--publish-draft-mr",
+        "--create-draft-pr",
+        "--create-draft-mr"
+      ],
+      "allowMutations": [
+        "--allow-mutations"
+      ],
+      "forceImplement": [
+        "--force-implement"
+      ],
+      "captureReproductionEvidence": [
+        "--capture-reproduction-evidence",
+        "--record-before"
+      ],
+      "captureVerificationEvidence": [
+        "--capture-verification-evidence",
+        "--record-after"
+      ],
+      "profile": "--profile",
+      "fromBranch": "--from-branch",
+      "parentTicket": [
+        "--parent",
+        "--parent-ticket"
+      ],
+      "parentBranch": "--parent-branch",
+      "useParentBranch": "--use-parent-branch",
+      "noParentBranch": "--no-parent-branch",
+      "cleanupApply": "--apply"
+    }
+  },
+  "stageRegistry": {
+    "help": {
+      "command": "help",
+      "legacyAliases": [],
+      "readOnly": true,
+      "mayEditCode": false,
+      "mayMutateEnvironment": false,
+      "requiresExplicitUserIntent": false,
+      "writesArtifacts": []
+    },
+    "doctor": {
+      "command": "doctor",
+      "legacyAliases": [],
+      "readOnly": true,
+      "mayEditCode": false,
+      "mayMutateEnvironment": false,
+      "requiresExplicitUserIntent": false,
+      "writesArtifacts": []
+    },
+    "context": {
+      "command": "inspect",
+      "legacyAliases": [
+        "analyze",
+        "--context"
+      ],
+      "readOnly": true,
+      "mayEditCode": false,
+      "mayMutateEnvironment": false,
+      "requiresExplicitUserIntent": false,
+      "writesArtifacts": [
+        "runState",
+        "jira",
+        "context",
+        "relationshipMap"
+      ]
+    },
+    "classification": {
+      "command": "inspect",
+      "legacyAliases": [
+        "analyze"
+      ],
+      "readOnly": true,
+      "mayEditCode": false,
+      "mayMutateEnvironment": false,
+      "requiresExplicitUserIntent": false,
+      "writesArtifacts": [
+        "classification"
+      ]
+    },
+    "reproductionHypothesis": {
+      "command": "inspect",
+      "legacyAliases": [
+        "repro",
+        "--reproduce"
+      ],
+      "readOnly": true,
+      "mayEditCode": false,
+      "mayMutateEnvironment": false,
+      "requiresExplicitUserIntent": false,
+      "writesArtifacts": [
+        "rootCause"
+      ]
+    },
+    "optimizationHypothesis": {
+      "command": "inspect",
+      "legacyAliases": [],
+      "readOnly": true,
+      "mayEditCode": false,
+      "mayMutateEnvironment": false,
+      "requiresExplicitUserIntent": false,
+      "writesArtifacts": [
+        "optimizationPlan"
+      ]
+    },
+    "readinessCheck": {
+      "command": "inspect",
+      "legacyAliases": [
+        "--readiness-check"
+      ],
+      "readOnly": true,
+      "mayEditCode": false,
+      "mayMutateEnvironment": false,
+      "requiresExplicitUserIntent": false,
+      "writesArtifacts": [
+        "readiness",
+        "blockers",
+        "assumptions"
+      ]
+    },
+    "plan": {
+      "command": "inspect",
+      "legacyAliases": [
+        "--plan"
+      ],
+      "readOnly": true,
+      "mayEditCode": false,
+      "mayMutateEnvironment": false,
+      "requiresExplicitUserIntent": false,
+      "writesArtifacts": [
+        "implementationPlan",
+        "validationPlan"
+      ]
+    },
+    "prepareWorkspace": {
+      "command": "start",
+      "legacyAliases": [
+        "branch",
+        "--prepare-branches"
+      ],
+      "readOnly": false,
+      "mayEditCode": false,
+      "mayMutateEnvironment": false,
+      "requiresExplicitUserIntent": true,
+      "writesArtifacts": [
+        "repoMap",
+        "workspaceMap",
+        "relationshipMap",
+        "baseRefresh",
+        "baseSnapshot",
+        "worktreeSafety"
+      ]
+    },
+    "reproductionEvidence": {
+      "command": "start",
+      "legacyAliases": [
+        "--capture-reproduction-evidence",
+        "--record-before"
+      ],
+      "readOnly": false,
+      "mayEditCode": false,
+      "mayMutateEnvironment": false,
+      "requiresExplicitUserIntent": false,
+      "writesArtifacts": [
+        "reproductionEvidence",
+        "evidenceManifest",
+        "playwrightEvidenceConfig",
+        "reproductionVideo"
+      ]
+    },
+    "performanceBaseline": {
+      "command": "start",
+      "legacyAliases": [],
+      "readOnly": false,
+      "mayEditCode": false,
+      "mayMutateEnvironment": false,
+      "requiresExplicitUserIntent": false,
+      "writesArtifacts": [
+        "performanceBaseline"
+      ]
+    },
+    "implementation": {
+      "command": "implement",
+      "legacyAliases": [
+        "code",
+        "--implement"
+      ],
+      "readOnly": false,
+      "mayEditCode": true,
+      "mayMutateEnvironment": false,
+      "requiresExplicitUserIntent": true,
+      "writesArtifacts": [
+        "runState",
+        "implementationPlan",
+        "implementationSummary"
+      ]
+    },
+    "validation": {
+      "command": "verify",
+      "legacyAliases": [
+        "check",
+        "--validate"
+      ],
+      "readOnly": false,
+      "mayEditCode": false,
+      "mayMutateEnvironment": false,
+      "requiresExplicitUserIntent": true,
+      "writesArtifacts": [
+        "validationResults"
+      ]
+    },
+    "manualValidation": {
+      "command": "verify",
+      "legacyAliases": [
+        "manual-validation",
+        "--manual-validation"
+      ],
+      "readOnly": false,
+      "mayEditCode": false,
+      "mayMutateEnvironment": false,
+      "requiresExplicitUserIntent": true,
+      "writesArtifacts": [
+        "manualValidation"
+      ]
+    },
+    "verificationEvidence": {
+      "command": "verify",
+      "legacyAliases": [
+        "--capture-verification-evidence",
+        "--record-after"
+      ],
+      "readOnly": false,
+      "mayEditCode": false,
+      "mayMutateEnvironment": false,
+      "requiresExplicitUserIntent": false,
+      "writesArtifacts": [
+        "verificationEvidence",
+        "evidenceManifest",
+        "playwrightEvidenceConfig",
+        "verificationVideo",
+        "verificationScreenshot"
+      ]
+    },
+    "performanceComparison": {
+      "command": "verify",
+      "legacyAliases": [],
+      "readOnly": false,
+      "mayEditCode": false,
+      "mayMutateEnvironment": false,
+      "requiresExplicitUserIntent": false,
+      "writesArtifacts": [
+        "performanceComparison"
+      ]
+    },
+    "environmentReadiness": {
+      "command": "ready",
+      "legacyAliases": [
+        "env-ready",
+        "ready-for-testing"
+      ],
+      "readOnly": true,
+      "mayEditCode": false,
+      "mayMutateEnvironment": false,
+      "requiresExplicitUserIntent": true,
+      "writesArtifacts": [
+        "environmentReadiness"
+      ]
+    },
+    "qaGuide": {
+      "command": "ready",
+      "legacyAliases": [
+        "qa-guide",
+        "validation-guide"
+      ],
+      "readOnly": true,
+      "mayEditCode": false,
+      "mayMutateEnvironment": false,
+      "requiresExplicitUserIntent": true,
+      "writesArtifacts": [
+        "qaGuide",
+        "qaGuideAllEnvs"
+      ]
+    },
+    "environmentAcceptance": {
+      "command": "accept",
+      "legacyAliases": [
+        "acceptance-validation"
+      ],
+      "readOnly": false,
+      "mayEditCode": false,
+      "mayMutateEnvironment": true,
+      "requiresExplicitUserIntent": true,
+      "writesArtifacts": [
+        "environmentAcceptance",
+        "verificationEvidence",
+        "evidenceManifest",
+        "verificationVideo",
+        "verificationScreenshot"
+      ]
+    },
+    "prePublishValidation": {
+      "command": "publish",
+      "legacyAliases": [
+        "pre-publish-validation",
+        "publish-check"
+      ],
+      "readOnly": false,
+      "mayEditCode": false,
+      "mayMutateEnvironment": false,
+      "requiresExplicitUserIntent": true,
+      "writesArtifacts": [
+        "prePublishValidation",
+        "qaVideo",
+        "evidenceManifest"
+      ]
+    },
+    "publishDraft": {
+      "command": "publish",
+      "legacyAliases": [
+        "--publish-draft-mr"
+      ],
+      "readOnly": false,
+      "mayEditCode": false,
+      "mayMutateEnvironment": false,
+      "requiresExplicitUserIntent": true,
+      "writesArtifacts": [
+        "mrDescription"
+      ]
+    },
+    "finalReport": {
+      "command": "report",
+      "legacyAliases": [
+        "complete",
+        "--final-report"
+      ],
+      "readOnly": false,
+      "mayEditCode": false,
+      "mayMutateEnvironment": false,
+      "requiresExplicitUserIntent": true,
+      "writesArtifacts": [
+        "definitionOfDone",
+        "finalSummary",
+        "artifactIndex"
+      ]
+    },
+    "status": {
+      "command": "status",
+      "legacyAliases": [],
+      "readOnly": true,
+      "mayEditCode": false,
+      "mayMutateEnvironment": false,
+      "requiresExplicitUserIntent": true,
+      "writesArtifacts": []
+    },
+    "cleanup": {
+      "command": "cleanup",
+      "legacyAliases": [],
+      "readOnly": false,
+      "mayEditCode": false,
+      "mayMutateEnvironment": false,
+      "requiresExplicitUserIntent": true,
+      "writesArtifacts": [
+        "artifactIndex"
+      ]
+    }
+  },
+  "artifactRegistry": {
+    "runState": {
+      "path": "run.json",
+      "producer": "all",
+      "consumers": [
+        "all"
+      ],
+      "sourceOfTruth": true,
+      "derived": false,
+      "userFacing": false,
+      "privacyLevel": "private",
+      "committable": false,
+      "retention": "keep"
+    },
+    "behaviorSpecDraft": {
+      "path": "behavior-spec.md",
+      "producer": "inspect",
+      "consumers": [
+        "implement",
+        "verify",
+        "publish",
+        "status",
+        "report"
+      ],
+      "sourceOfTruth": false,
+      "derived": false,
+      "userFacing": true,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep"
+    },
+    "behaviorCoverage": {
+      "path": "behavior-coverage.json",
+      "producer": "verify",
+      "consumers": [
+        "publish",
+        "status",
+        "report"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": false,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep"
+    },
+    "artifactIndex": {
+      "path": "artifact-index.md",
+      "producer": "report",
+      "consumers": [
+        "status",
+        "cleanup",
+        "report"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": true,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep"
+    },
+    "legacyArtifactIndex": {
+      "path": "legacy-artifact-index.md",
+      "producer": "migration",
+      "consumers": [
+        "status",
+        "cleanup",
+        "report",
+        "doctor"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": true,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep"
+    },
+    "legacyMigrationManifest": {
+      "path": "migration-manifests/migration-manifest-{timestamp}.json",
+      "producer": "migration",
+      "consumers": [
+        "status",
+        "cleanup",
+        "report",
+        "doctor"
+      ],
+      "sourceOfTruth": false,
+      "derived": false,
+      "userFacing": false,
+      "privacyLevel": "private",
+      "committable": false,
+      "retention": "keep"
+    },
+    "jira": {
+      "path": "jira.json",
+      "producer": "inspect",
+      "consumers": [
+        "inspect",
+        "verify",
+        "ready",
+        "report"
+      ],
+      "sourceOfTruth": false,
+      "derived": false,
+      "userFacing": false,
+      "privacyLevel": "secret-redacted",
+      "committable": false,
+      "retention": "keep"
+    },
+    "context": {
+      "path": "context.md",
+      "producer": "inspect",
+      "consumers": [
+        "implement",
+        "verify",
+        "report"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": true,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep"
+    },
+    "repoMap": {
+      "path": "repo-map.md",
+      "producer": "start",
+      "consumers": [
+        "implement",
+        "verify"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": false,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep"
+    },
+    "workspaceMap": {
+      "path": "workspace-map.md",
+      "producer": "start",
+      "consumers": [
+        "implement",
+        "verify",
+        "publish"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": false,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep"
+    },
+    "relationshipMap": {
+      "path": "relationship-map.md",
+      "producer": "inspect",
+      "consumers": [
+        "start",
+        "implement",
+        "verify",
+        "publish",
+        "report",
+        "status"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": true,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep"
+    },
+    "baseRefresh": {
+      "path": "base-refresh.md",
+      "producer": "start",
+      "consumers": [
+        "implement",
+        "verify",
+        "publish",
+        "report",
+        "status"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": false,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep"
+    },
+    "baseSnapshot": {
+      "path": "base-snapshot.md",
+      "producer": "inspect",
+      "consumers": [
+        "start",
+        "implement"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": false,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep"
+    },
+    "classification": {
+      "path": "classification.md",
+      "producer": "inspect",
+      "consumers": [
+        "implement",
+        "report"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": false,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep-latest"
+    },
+    "rootCause": {
+      "path": "root-cause.md",
+      "producer": "inspect",
+      "consumers": [
+        "implement",
+        "verify",
+        "report"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": true,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep"
+    },
+    "optimizationPlan": {
+      "path": "optimization-plan.md",
+      "producer": "inspect",
+      "consumers": [
+        "implement",
+        "verify",
+        "report"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": true,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep"
+    },
+    "readiness": {
+      "path": "readiness-check.md",
+      "producer": "inspect",
+      "consumers": [
+        "implement",
+        "status",
+        "report"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": true,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep"
+    },
+    "implementationPlan": {
+      "path": "implementation-plan.md",
+      "producer": "inspect",
+      "consumers": [
+        "implement",
+        "verify",
+        "publish"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": true,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep"
+    },
+    "implementationSummary": {
+      "path": "implementation-summary.md",
+      "producer": "implement",
+      "consumers": [
+        "verify",
+        "publish",
+        "report",
+        "status"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": true,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep"
+    },
+    "blockers": {
+      "path": "blockers.md",
+      "producer": "all",
+      "consumers": [
+        "status",
+        "report"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": true,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep-latest"
+    },
+    "assumptions": {
+      "path": "assumptions.md",
+      "producer": "inspect",
+      "consumers": [
+        "implement",
+        "report"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": true,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep-latest"
+    },
+    "validationPlan": {
+      "path": "validation-plan.md",
+      "producer": "inspect",
+      "consumers": [
+        "verify",
+        "publish"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": false,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep"
+    },
+    "validationResults": {
+      "path": "validation-results.md",
+      "producer": "verify",
+      "consumers": [
+        "publish",
+        "report"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": true,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep"
+    },
+    "manualValidation": {
+      "path": "manual-validation-steps.md",
+      "producer": "verify",
+      "consumers": [
+        "ready",
+        "accept",
+        "publish"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": true,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep"
+    },
+    "reproductionEvidence": {
+      "path": "reproduction-evidence.md",
+      "producer": "start",
+      "consumers": [
+        "verify",
+        "publish",
+        "report",
+        "status"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": true,
+      "privacyLevel": "private",
+      "committable": false,
+      "retention": "keep"
+    },
+    "performanceBaseline": {
+      "path": "performance-baseline.md",
+      "producer": "start",
+      "consumers": [
+        "implement",
+        "verify",
+        "publish",
+        "report",
+        "status"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": true,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep"
+    },
+    "verificationEvidence": {
+      "path": "verification-evidence.md",
+      "producer": "verify",
+      "consumers": [
+        "publish",
+        "report",
+        "status"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": true,
+      "privacyLevel": "private",
+      "committable": false,
+      "retention": "keep"
+    },
+    "performanceComparison": {
+      "path": "performance-comparison.md",
+      "producer": "verify",
+      "consumers": [
+        "publish",
+        "report",
+        "status"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": true,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep"
+    },
+    "evidenceManifest": {
+      "path": "evidence-manifest.json",
+      "producer": "start",
+      "consumers": [
+        "verify",
+        "accept",
+        "publish",
+        "report",
+        "status"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": false,
+      "privacyLevel": "private",
+      "committable": false,
+      "retention": "keep"
+    },
+    "playwrightEvidenceConfig": {
+      "path": "playwright-evidence-{evidencePhase}.config.cjs",
+      "producer": "start",
+      "consumers": [
+        "verify",
+        "accept",
+        "publish",
+        "report",
+        "status"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": false,
+      "privacyLevel": "private",
+      "committable": false,
+      "retention": "keep"
+    },
+    "reproductionVideo": {
+      "path": "{centralEvidenceRoot}/{ticketKey}/reproduction/reproduction-video-{ticketKey}.{ext}",
+      "producer": "start",
+      "consumers": [
+        "verify",
+        "publish",
+        "report",
+        "status"
+      ],
+      "sourceOfTruth": false,
+      "derived": false,
+      "userFacing": true,
+      "privacyLevel": "private",
+      "committable": false,
+      "retention": "manual-cleanup"
+    },
+    "verificationVideo": {
+      "path": "{centralEvidenceRoot}/{ticketKey}/verification/verification-video-{ticketKey}.{ext}",
+      "producer": "verify",
+      "consumers": [
+        "publish",
+        "report",
+        "status"
+      ],
+      "sourceOfTruth": false,
+      "derived": false,
+      "userFacing": true,
+      "privacyLevel": "private",
+      "committable": false,
+      "retention": "manual-cleanup"
+    },
+    "verificationScreenshot": {
+      "path": "{centralEvidenceRoot}/{ticketKey}/verification/verification-screenshot-{ticketKey}.{ext}",
+      "producer": "verify",
+      "consumers": [
+        "publish",
+        "report",
+        "status"
+      ],
+      "sourceOfTruth": false,
+      "derived": false,
+      "userFacing": true,
+      "privacyLevel": "private",
+      "committable": false,
+      "retention": "manual-cleanup"
+    },
+    "environmentReadiness": {
+      "path": "environment-readiness-{environment}.md",
+      "producer": "ready",
+      "consumers": [
+        "status",
+        "report"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": true,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep"
+    },
+    "qaGuide": {
+      "path": "qa-validation-guide-{environment}.md",
+      "producer": "ready",
+      "consumers": [
+        "accept",
+        "report"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": true,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep"
+    },
+    "qaGuideAllEnvs": {
+      "path": "qa-validation-guide-all-envs.md",
+      "producer": "ready",
+      "consumers": [
+        "report"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": true,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep"
+    },
+    "environmentAcceptance": {
+      "path": "environment-acceptance-{environment}.md",
+      "producer": "accept",
+      "consumers": [
+        "report"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": true,
+      "privacyLevel": "private",
+      "committable": false,
+      "retention": "keep"
+    },
+    "prePublishValidation": {
+      "path": "pre-publish-validation.md",
+      "producer": "publish",
+      "consumers": [
+        "publish",
+        "report"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": true,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep"
+    },
+    "qaVideo": {
+      "path": "qa-validation-video-{ticketKey}.{ext}",
+      "producer": "publish",
+      "consumers": [
+        "report"
+      ],
+      "sourceOfTruth": false,
+      "derived": false,
+      "userFacing": true,
+      "privacyLevel": "private",
+      "committable": false,
+      "retention": "manual-cleanup"
+    },
+    "definitionOfDone": {
+      "path": "definition-of-done.md",
+      "producer": "report",
+      "consumers": [
+        "report"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": true,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep-latest"
+    },
+    "worktreeSafety": {
+      "path": "worktree-safety.md",
+      "producer": "start",
+      "consumers": [
+        "implement",
+        "status"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": false,
+      "privacyLevel": "private",
+      "committable": false,
+      "retention": "keep"
+    },
+    "mrDescription": {
+      "path": "mr-description.md",
+      "producer": "publish",
+      "consumers": [
+        "publish"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": true,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep"
+    },
+    "deploymentNotes": {
+      "path": "deployment-notes.md",
+      "producer": "report",
+      "consumers": [
+        "report"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": true,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep"
+    },
+    "rollbackPlan": {
+      "path": "rollback-plan.md",
+      "producer": "report",
+      "consumers": [
+        "report"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": true,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep"
+    },
+    "qaNotes": {
+      "path": "qa-notes.md",
+      "producer": "report",
+      "consumers": [
+        "report"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": true,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep"
+    },
+    "finalSummary": {
+      "path": "final-summary.md",
+      "producer": "report",
+      "consumers": [
+        "status",
+        "report"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": true,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep"
+    }
+  },
+  "policy": {
+    "defaultReadOnlyEnvironments": [
+      "dev",
+      "stage",
+      "prod"
+    ],
+    "requireExplicitPublish": true,
+    "requireExplicitCommit": true,
+    "requirePrePublishValidationBeforeDraft": true,
+    "blockPublishOnFailedRequiredGate": true,
+    "blockPublishOnPostCommitTrackedChanges": true,
+    "forbidDeployments": true,
+    "forbidJiraTransitions": true,
+    "forbidUnconfiguredCommands": true,
+    "statusWritesNextAction": true,
+    "skillRepositoryProvider": {
+      "provider": "github",
+      "verifyBeforeRemotePushOrPr": true
+    }
+  },
+  "profiles": {}
+}

@@ -19,6 +19,10 @@ Use this file for command parsing, stage ordering, user-facing behavior, and leg
 | `status <ticket>` | `status` | Reads `run.json`, evidence state, and artifacts only. |
 | `cleanup <ticket>` | `cleanup` | Dry-run by default; destructive local cleanup requires explicit cleanup flag. |
 
+## Opt-In V2 Commands
+
+`portable-jira-flow-v2` is a separate pilot that shares the selected local profile while writing to a v2 run namespace. Its MVP command surface is `doctor`, `inspect <ticket>`, and `status <ticket>`. V2 adds behavior-spec digests, scenario coverage, and provenance to those commands without changing the v1 command meanings above.
+
 ## Command Details
 
 ### `help`

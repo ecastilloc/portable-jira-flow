@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/portable-jira-flow/run-state.v1.schema.json",
+  "title": "Portable Jira Flow Run State V1",
+  "type": "object",
+  "required": ["schemaVersion", "skillName", "ticketKey", "createdAt", "updatedAt", "invocation", "stages", "policy", "artifacts"],
+  "properties": {
+    "schemaVersion": {"const": "1.0.0"},
+    "skillName": {"const": "portable-jira-flow"},
+    "ticketKey": {"type": "string"},
+    "profile": {"type": ["string", "null"]},
+    "createdAt": {"type": "string"},
+    "updatedAt": {"type": "string"},
+    "invocation": {"type": "object"},
+    "stages": {"type": "object"},
+    "policy": {"type": "object"},
+    "artifacts": {"type": "array"}
+  },
+  "additionalProperties": true
+}

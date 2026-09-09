@@ -109,6 +109,8 @@
   },
   "artifactRegistry": {
     "runState": {"path": "run.json", "producer": "all", "consumers": ["all"], "sourceOfTruth": true, "derived": false, "userFacing": false, "privacyLevel": "private", "committable": false, "retention": "keep"},
+    "behaviorSpecDraft": {"path": "behavior-spec.md", "producer": "inspect", "consumers": ["implement", "verify", "publish", "status", "report"], "sourceOfTruth": false, "derived": false, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
+    "behaviorCoverage": {"path": "behavior-coverage.json", "producer": "verify", "consumers": ["publish", "status", "report"], "sourceOfTruth": false, "derived": true, "userFacing": false, "privacyLevel": "internal", "committable": false, "retention": "keep"},
     "artifactIndex": {"path": "artifact-index.md", "producer": "report", "consumers": ["status", "cleanup", "report"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
     "legacyArtifactIndex": {"path": "legacy-artifact-index.md", "producer": "migration", "consumers": ["status", "cleanup", "report", "doctor"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
     "legacyMigrationManifest": {"path": "migration-manifests/migration-manifest-{timestamp}.json", "producer": "migration", "consumers": ["status", "cleanup", "report", "doctor"], "sourceOfTruth": false, "derived": false, "userFacing": false, "privacyLevel": "private", "committable": false, "retention": "keep"},
@@ -219,6 +221,15 @@
         "legacyImportPolicy": "archive-only",
         "runLayout": "ticket",
         "nonCommittable": true
+      },
+      "workflowV2": {
+        "enabled": false,
+        "runNamespace": "v2",
+        "behaviorSpecs": {
+          "draftMode": "local-run-artifact",
+          "template": "v2/templates/behavior-spec.md",
+          "durableStorage": "explicit-policy-only"
+        }
       },
       "branching": {
         "nameFormat": "{branchPrefix}/{ticketKey}",

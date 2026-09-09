@@ -265,3 +265,64 @@ Expected:
 - Every generated artifact is represented in `artifactRegistrySnapshot` or a run-local generated artifact entry.
 - `artifact-index.md` includes producer, consumer, source/derived, privacy, retention, committable status, and freshness.
 - `run.json.schemaVersion` is present.
+
+### 14. V2 Doctor Shares Runtime Config
+
+Input:
+
+```text
+portable-jira-flow-v2 doctor
+```
+
+Expected:
+
+- Runtime config loads in the documented order without loading `config.example.json`.
+- The selected local profile is validated structurally without printing private values.
+- Optional `workflowV2` keys are validated when present.
+- No Jira fetch, branch creation, test command, push, PR/MR creation, deployment, or environment mutation occurs.
+
+### 15. V2 Inspect Creates Local Behavior Contract
+
+Input:
+
+```text
+portable-jira-flow-v2 inspect ABC-114
+```
+
+Expected:
+
+- V2 writes under `{runsRoot}/v2/ABC-114/`.
+- V1 `{runsRoot}/ABC-114/run.json` is not created, changed, or migrated.
+- `behavior-spec.md` is created as a local non-committable draft.
+- `run.json` uses `schemaVersion: "2.0.0"` and `skillName: "portable-jira-flow-v2"`.
+- `run.json.behaviorSpec.digest` is the SHA-256 digest of the selected behavior spec.
+- Scenario coverage starts as unknown or planned, not passed.
+
+### 16. V2 Status Does Not Run Stages
+
+Input:
+
+```text
+portable-jira-flow-v2 status ABC-114
+```
+
+Expected:
+
+- Reads v2 `run.json` and artifact metadata only.
+- Reports behavior spec status, digest, coverage summary, blockers, stale inputs, and next action.
+- Does not fetch Jira, prepare workspaces, run validation, push, publish, or mutate environments.
+
+### 17. Invalid Config Contracts Fail
+
+Fixture changes:
+
+```text
+stageRegistry.implementation.readOnly = "false"
+invocation.primaryCommands.verify += ["nonexistentStage"]
+```
+
+Expected:
+
+- Public validation fails on the string boolean.
+- Public validation fails on the unknown stage reference.
+- The error names the broken contract path without printing private local values.

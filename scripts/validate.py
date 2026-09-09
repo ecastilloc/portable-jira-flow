@@ -9,6 +9,9 @@ import re
 import sys
 from pathlib import Path
 
+from pjf.config_loader import ConfigLoadError, load_example_config, read_jsonc
+from pjf.contracts import ContractError, validate_config_contract
+
 
 SKILL_NAME = "portable-jira-flow"
 REQUIRED_REFERENCES = [
@@ -62,6 +65,8 @@ REQUIRED_ARTIFACTS = {
     "environmentAcceptance",
     "prePublishValidation",
     "finalSummary",
+    "behaviorSpecDraft",
+    "behaviorCoverage",
 }
 PRIVATE_TERMS = [
     "/Users/" + "W" + "490" + "623",
@@ -174,102 +179,43 @@ def validate_public_scan(root: Path) -> None:
 
 
 def validate_config(root: Path) -> None:
-    config = read_json(root / "config.example.json")
+    defaults = read_json(root / "config.defaults.json")
+    config = load_example_config(root).config
     schema = read_json(root / "config.schema.json")
     if schema.get("title") != "Portable Jira Flow Config":
         raise ValidationError("config.schema.json: unexpected title")
-    if config.get("schemaVersion") != "1.0.0":
-        raise ValidationError("config.example.json: schemaVersion must be 1.0.0")
+    try:
+        validate_config_contract(defaults, root=root, public_package=True)
+    except ContractError as exc:
+        raise ValidationError(f"config.defaults.json: {exc}") from exc
+    if defaults.get("defaultProfile") is not None:
+        raise ValidationError("config.defaults.json: defaultProfile must be null")
+    if defaults.get("profiles") != {}:
+        raise ValidationError("config.defaults.json: must not contain executable profiles")
 
-    primary = set(config.get("invocation", {}).get("primaryCommands", {}))
+    try:
+        validate_config_contract(config, root=root, public_package=True)
+    except ContractError as exc:
+        raise ValidationError(f"config.example.json: {exc}") from exc
+
+    primary = set(config["invocation"]["primaryCommands"])
     missing_commands = REQUIRED_COMMANDS - primary
     if missing_commands:
         raise ValidationError(f"config.example.json: missing primary commands {sorted(missing_commands)}")
 
-    aliases = config.get("invocation", {}).get("legacyAliases", {})
+    aliases = config["invocation"]["legacyAliases"]
     for alias in ["analyze", "branch", "check", "complete"]:
         if alias not in aliases:
             raise ValidationError(f"config.example.json: missing legacy alias {alias}")
 
-    stages = config.get("stageRegistry", {})
-    for stage_name, stage in stages.items():
-        for key in ["command", "legacyAliases", "readOnly", "mayEditCode", "mayMutateEnvironment", "requiresExplicitUserIntent", "writesArtifacts"]:
-            if key not in stage:
-                raise ValidationError(f"stageRegistry.{stage_name}: missing {key}")
-
-    artifacts = config.get("artifactRegistry", {})
-    missing_artifacts = REQUIRED_ARTIFACTS - set(artifacts)
+    missing_artifacts = REQUIRED_ARTIFACTS - set(config["artifactRegistry"])
     if missing_artifacts:
         raise ValidationError(f"config.example.json: missing artifacts {sorted(missing_artifacts)}")
-    if not artifacts["runState"].get("sourceOfTruth"):
-        raise ValidationError("artifactRegistry.runState: must be sourceOfTruth")
-    for name, artifact in artifacts.items():
-        if artifact.get("committable") is not False:
-            raise ValidationError(f"artifactRegistry.{name}: public run artifacts must be non-committable by default")
 
-    example_profile = config["profiles"]["example"]
-    profile_artifacts = example_profile.get("artifacts")
-    if not profile_artifacts:
-        raise ValidationError("profiles.example.artifacts: missing artifact root config")
-    if not profile_artifacts.get("runsRoot"):
-        raise ValidationError("profiles.example.artifacts.runsRoot: missing configured run root")
-    if profile_artifacts.get("runLayout") != "ticket":
-        raise ValidationError("profiles.example.artifacts.runLayout: must default to ticket")
-    if profile_artifacts.get("nonCommittable") is not True:
-        raise ValidationError("profiles.example.artifacts.nonCommittable: must be true")
-
-    evidence = example_profile.get("evidence")
-    if not evidence:
-        raise ValidationError("profiles.example.evidence: missing evidence config")
-    if evidence.get("enabled") is not True:
-        raise ValidationError("profiles.example.evidence.enabled: must be true in example contract")
-    if evidence.get("storage") != "central":
-        raise ValidationError("profiles.example.evidence.storage: must default to central")
-    if evidence.get("missingPolicy") != "warn":
-        raise ValidationError("profiles.example.evidence.missingPolicy: must default to warn")
-
-    relationships = example_profile.get("relationships")
-    if not relationships:
-        raise ValidationError("profiles.example.relationships: missing relationship config")
-    if relationships.get("enabled") is not True:
-        raise ValidationError("profiles.example.relationships.enabled: must be true in example contract")
-    if relationships.get("defaultRelationshipType") != "standalone":
-        raise ValidationError("profiles.example.relationships.defaultRelationshipType: must default to standalone")
-    if "defect" not in relationships.get("relationshipTypes", []):
-        raise ValidationError("profiles.example.relationships.relationshipTypes: must include defect")
-    if "defect" not in relationships.get("reuseParentBranchForTypes", []):
-        raise ValidationError("profiles.example.relationships.reuseParentBranchForTypes: must include defect")
-    base_refresh = relationships.get("baseRefresh", {})
-    if not isinstance(base_refresh, dict) or base_refresh.get("strategy") != "merge":
-        raise ValidationError("profiles.example.relationships.baseRefresh.strategy: must default to merge")
-
-    config_text = (root / "config.example.json").read_text(encoding="utf-8")
-    for placeholder in [
-        "{ticketKey}",
-        "{environment}",
-        "{specPaths}",
-        "{evidencePhase}",
-        "{evidenceOutputDir}",
-        "{playwrightConfigPath}",
-    ]:
-        if placeholder not in config_text:
-            raise ValidationError(f"config.example.json: missing E2E/evidence placeholder {placeholder}")
-
-    publishing = example_profile["publishing"]
-    template_path, _, fragment = publishing["descriptionTemplate"].partition("#")
-    if not (root / template_path).exists():
-        raise ValidationError(f"config.example.json: missing description template file {template_path}")
-    if fragment and fragment not in (root / template_path).read_text(encoding="utf-8"):
-        raise ValidationError(f"config.example.json: missing description template fragment {fragment}")
-
-    for ticket_type, template_ref in publishing.get("descriptionTemplateByTicketType", {}).items():
-        by_type_path, _, by_type_fragment = template_ref.partition("#")
-        if not (root / by_type_path).exists():
-            raise ValidationError(f"config.example.json: missing description template file {by_type_path} for ticket type {ticket_type!r}")
-        if by_type_fragment and by_type_fragment not in (root / by_type_path).read_text(encoding="utf-8"):
-            raise ValidationError(f"config.example.json: missing description template fragment {by_type_fragment} for ticket type {ticket_type!r}")
-
-    json.loads(strip_jsonc((root / "config.local.example.jsonc").read_text(encoding="utf-8")))
+    try:
+        read_jsonc(root / "config.local.example.jsonc")
+    except ConfigLoadError as exc:
+        raise ValidationError(str(exc)) from exc
 
 
 def validate_adapters(root: Path) -> None:
@@ -282,6 +228,13 @@ def validate_adapters(root: Path) -> None:
         if "{{SKILL_ROOT}}" not in text:
             raise ValidationError(f"{path}: missing {{SKILL_ROOT}} placeholder")
         validate_frontmatter(path)
+        v2_path = templates / f"{target}-v2.SKILL.md.tmpl"
+        if not v2_path.exists():
+            raise ValidationError(f"missing v2 adapter template: {v2_path}")
+        v2_text = v2_path.read_text(encoding="utf-8")
+        if "{{SKILL_ROOT}}" not in v2_text:
+            raise ValidationError(f"{v2_path}: missing {{SKILL_ROOT}} placeholder")
+        validate_frontmatter(v2_path, "portable-jira-flow-v2")
 
 
 def validate_references(root: Path) -> None:
@@ -294,12 +247,39 @@ def validate_references(root: Path) -> None:
 
 
 def validate_scripts(root: Path) -> None:
-    for name in ["evidence.py", "migrate_legacy_artifacts.py"]:
+    for name in ["evidence.py", "migrate_legacy_artifacts.py", "v2_contract.py"]:
         path = root / "scripts" / name
         if not path.exists():
             raise ValidationError(f"missing script: {path}")
         if path.stat().st_size == 0:
             raise ValidationError(f"empty script: {path}")
+    for name in ["config_loader.py", "contracts.py", "state_writer.py", "v2_contracts.py"]:
+        path = root / "scripts" / "pjf" / name
+        if not path.exists():
+            raise ValidationError(f"missing shared helper: {path}")
+        if path.stat().st_size == 0:
+            raise ValidationError(f"empty shared helper: {path}")
+
+
+def validate_v2(root: Path) -> None:
+    validate_frontmatter(root / "v2" / "SKILL.md", "portable-jira-flow-v2")
+    for name in ["commands.md", "behavior-contract.md", "run-state.md", "publishing.md"]:
+        path = root / "v2" / "references" / name
+        if not path.exists():
+            raise ValidationError(f"missing v2 reference: {path}")
+        if path.stat().st_size == 0:
+            raise ValidationError(f"empty v2 reference: {path}")
+    for name in ["behavior-spec.md"]:
+        path = root / "v2" / "templates" / name
+        if not path.exists():
+            raise ValidationError(f"missing v2 template: {path}")
+        if path.stat().st_size == 0:
+            raise ValidationError(f"empty v2 template: {path}")
+    for name in ["run-state.v1.schema.json", "run-state.v2.schema.json", "behavior-spec.v1.schema.json"]:
+        path = root / "schemas" / name
+        if not path.exists():
+            raise ValidationError(f"missing schema: {path}")
+        read_json(path)
 
 
 def main(argv: list[str]) -> int:
@@ -315,6 +295,7 @@ def main(argv: list[str]) -> int:
         validate_scripts(root)
         validate_adapters(root)
         validate_config(root)
+        validate_v2(root)
         if args.public:
             validate_public_scan(root)
     except ValidationError as exc:
