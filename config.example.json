@@ -109,6 +109,9 @@
   },
   "artifactRegistry": {
     "runState": {"path": "run.json", "producer": "all", "consumers": ["all"], "sourceOfTruth": true, "derived": false, "userFacing": false, "privacyLevel": "private", "committable": false, "retention": "keep"},
+    "sourcePack": {"path": "source-pack.json", "producer": "inspect", "consumers": ["inspect", "implement", "verify", "publish", "status", "report"], "sourceOfTruth": false, "derived": false, "userFacing": false, "privacyLevel": "internal", "committable": false, "retention": "keep"},
+    "behaviorFacts": {"path": "behavior-facts.json", "producer": "inspect", "consumers": ["implement", "verify", "publish", "status", "report"], "sourceOfTruth": false, "derived": true, "userFacing": false, "privacyLevel": "internal", "committable": false, "retention": "keep"},
+    "behaviorSpecData": {"path": "behavior-spec.json", "producer": "inspect", "consumers": ["implement", "verify", "publish", "status", "report"], "sourceOfTruth": false, "derived": false, "userFacing": false, "privacyLevel": "internal", "committable": false, "retention": "keep"},
     "behaviorSpecDraft": {"path": "behavior-spec.md", "producer": "inspect", "consumers": ["implement", "verify", "publish", "status", "report"], "sourceOfTruth": false, "derived": false, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
     "behaviorCoverage": {"path": "behavior-coverage.json", "producer": "verify", "consumers": ["publish", "status", "report"], "sourceOfTruth": false, "derived": true, "userFacing": false, "privacyLevel": "internal", "committable": false, "retention": "keep"},
     "artifactIndex": {"path": "artifact-index.md", "producer": "report", "consumers": ["status", "cleanup", "report"], "sourceOfTruth": false, "derived": true, "userFacing": true, "privacyLevel": "internal", "committable": false, "retention": "keep"},
@@ -229,6 +232,22 @@
           "draftMode": "local-run-artifact",
           "template": "v2/templates/behavior-spec.md",
           "durableStorage": "explicit-policy-only"
+        },
+        "sourceIngestion": {
+          "authorityOrder": ["user_request", "existing_reviewed_spec", "jira_acceptance_criteria", "jira_description", "jira_comments", "attachments", "existing_tests", "current_code", "assistant_context"],
+          "attachmentInstructionPolicy": "reference-only"
+        },
+        "scenarioExtraction": {
+          "planDuringInspect": true,
+          "requireStableIds": true,
+          "unknownExpectedResults": "open_decision",
+          "coverageStatuses": ["planned", "implemented", "passed", "failed", "blocked", "skipped", "not_applicable", "unknown"]
+        },
+        "freshness": {
+          "trackSourceDigests": true,
+          "trackSpecDigest": true,
+          "staleOnSpecChange": true,
+          "staleOnRelevantSourceChange": true
         }
       },
       "branching": {

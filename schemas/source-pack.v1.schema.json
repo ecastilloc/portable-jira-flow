@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/portable-jira-flow/source-pack.v1.schema.json",
+  "title": "Portable Jira Flow V2 Source Pack V1",
+  "type": "object",
+  "required": ["schemaVersion", "ticketKey", "generatedAt", "policy", "sources", "digestAlgorithm", "digest"],
+  "properties": {
+    "schemaVersion": {"const": "1.0.0"},
+    "ticketKey": {"type": "string"},
+    "profile": {"type": ["string", "null"]},
+    "generatedAt": {"type": "string"},
+    "policy": {"type": "object"},
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["sourceId", "kind", "authority", "pathOrLocator", "digestAlgorithm", "digest", "capturedAt", "content"],
+        "properties": {
+          "sourceId": {"type": "string"},
+          "kind": {"type": "string"},
+          "authority": {"type": "string"},
+          "pathOrLocator": {"type": "string"},
+          "revision": {"type": ["string", "null"]},
+          "digestAlgorithm": {"const": "sha256"},
+          "digest": {"type": "string"},
+          "capturedAt": {"type": "string"},
+          "instructionPolicy": {"type": "string"},
+          "executableInstructions": {"type": "boolean"},
+          "content": {"type": "string"}
+        },
+        "additionalProperties": true
+      }
+    },
+    "digestAlgorithm": {"const": "sha256"},
+    "digest": {"type": "string"}
+  },
+  "additionalProperties": true
+}
+

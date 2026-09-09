@@ -65,6 +65,9 @@ REQUIRED_ARTIFACTS = {
     "environmentAcceptance",
     "prePublishValidation",
     "finalSummary",
+    "sourcePack",
+    "behaviorFacts",
+    "behaviorSpecData",
     "behaviorSpecDraft",
     "behaviorCoverage",
 }
@@ -247,13 +250,13 @@ def validate_references(root: Path) -> None:
 
 
 def validate_scripts(root: Path) -> None:
-    for name in ["evidence.py", "migrate_legacy_artifacts.py", "v2_contract.py"]:
+    for name in ["evidence.py", "migrate_legacy_artifacts.py", "v2_contract.py", "test_v2_contract.py"]:
         path = root / "scripts" / name
         if not path.exists():
             raise ValidationError(f"missing script: {path}")
         if path.stat().st_size == 0:
             raise ValidationError(f"empty script: {path}")
-    for name in ["config_loader.py", "contracts.py", "state_writer.py", "v2_contracts.py"]:
+    for name in ["config_loader.py", "contracts.py", "state_writer.py", "v2_contracts.py", "v2_inspect.py"]:
         path = root / "scripts" / "pjf" / name
         if not path.exists():
             raise ValidationError(f"missing shared helper: {path}")
@@ -275,11 +278,29 @@ def validate_v2(root: Path) -> None:
             raise ValidationError(f"missing v2 template: {path}")
         if path.stat().st_size == 0:
             raise ValidationError(f"empty v2 template: {path}")
-    for name in ["run-state.v1.schema.json", "run-state.v2.schema.json", "behavior-spec.v1.schema.json"]:
+    for name in [
+        "run-state.v1.schema.json",
+        "run-state.v2.schema.json",
+        "source-pack.v1.schema.json",
+        "behavior-facts.v1.schema.json",
+        "behavior-spec.v1.schema.json",
+    ]:
         path = root / "schemas" / name
         if not path.exists():
             raise ValidationError(f"missing schema: {path}")
         read_json(path)
+    for name in [
+        "feature-ticket.json",
+        "bug-ticket.json",
+        "performance-ticket.json",
+        "contradictory-source.md",
+        "attachment-instructions.txt",
+    ]:
+        path = root / "evals" / "fixtures" / "v2" / name
+        if not path.exists():
+            raise ValidationError(f"missing v2 fixture: {path}")
+        if path.stat().st_size == 0:
+            raise ValidationError(f"empty v2 fixture: {path}")
 
 
 def main(argv: list[str]) -> int:

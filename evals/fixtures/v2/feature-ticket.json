@@ -1,0 +1,10 @@
+{
+  "key": "ABC-301",
+  "fields": {
+    "summary": "Assign an open task to an active user",
+    "issuetype": {"name": "Story"},
+    "description": "As a team member, I want to assign an open unassigned Task to an active User in the same Team. Acceptance Criteria: The assignee is saved when the Task is open and unassigned. The system cannot assign a closed Task. The system cannot assign an inactive User.",
+    "labels": ["tasks"],
+    "components": [{"name": "Task Management"}]
+  }
+}

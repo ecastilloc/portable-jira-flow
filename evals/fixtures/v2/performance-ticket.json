@@ -1,0 +1,10 @@
+{
+  "key": "ABC-303",
+  "fields": {
+    "summary": "Optimize slow report page",
+    "issuetype": {"name": "Story"},
+    "description": "The report page should be faster for large accounts. Reduce p95 latency and timeout risk for report viewers.",
+    "labels": ["performance"],
+    "components": [{"name": "Reports"}]
+  }
+}

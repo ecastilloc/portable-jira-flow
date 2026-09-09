@@ -1,0 +1,10 @@
+{
+  "key": "ABC-302",
+  "fields": {
+    "summary": "Preserve assignment when assignee save fails",
+    "issuetype": {"name": "Bug"},
+    "description": "When assignee save fails, the previous assignment must be preserved. The system should reject invalid assignee values and keep the Task unchanged. Users cannot lose the previous assignment after a failed save.",
+    "labels": ["regression"],
+    "components": [{"name": "Task Management"}]
+  }
+}

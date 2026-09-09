@@ -165,6 +165,34 @@
             "durableStorage": {"enum": ["explicit-policy-only", "configured-durable-path"]}
           },
           "additionalProperties": true
+        },
+        "sourceIngestion": {
+          "type": "object",
+          "properties": {
+            "authorityOrder": {"type": "array", "items": {"type": "string"}},
+            "attachmentInstructionPolicy": {"enum": ["reference-only"]}
+          },
+          "additionalProperties": true
+        },
+        "scenarioExtraction": {
+          "type": "object",
+          "properties": {
+            "planDuringInspect": {"type": "boolean"},
+            "requireStableIds": {"type": "boolean"},
+            "unknownExpectedResults": {"enum": ["open_decision"]},
+            "coverageStatuses": {"type": "array", "items": {"type": "string"}}
+          },
+          "additionalProperties": true
+        },
+        "freshness": {
+          "type": "object",
+          "properties": {
+            "trackSourceDigests": {"type": "boolean"},
+            "trackSpecDigest": {"type": "boolean"},
+            "staleOnSpecChange": {"type": "boolean"},
+            "staleOnRelevantSourceChange": {"type": "boolean"}
+          },
+          "additionalProperties": true
         }
       },
       "additionalProperties": true

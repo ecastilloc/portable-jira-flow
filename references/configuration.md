@@ -382,12 +382,53 @@ Profiles may opt in to behavior-contract defaults without duplicating repository
       "draftMode": "local-run-artifact",
       "template": "v2/templates/behavior-spec.md",
       "durableStorage": "explicit-policy-only"
+    },
+    "sourceIngestion": {
+      "authorityOrder": [
+        "user_request",
+        "existing_reviewed_spec",
+        "jira_acceptance_criteria",
+        "jira_description",
+        "jira_comments",
+        "attachments",
+        "existing_tests",
+        "current_code",
+        "assistant_context"
+      ],
+      "attachmentInstructionPolicy": "reference-only"
+    },
+    "scenarioExtraction": {
+      "planDuringInspect": true,
+      "requireStableIds": true,
+      "unknownExpectedResults": "open_decision",
+      "coverageStatuses": [
+        "planned",
+        "implemented",
+        "passed",
+        "failed",
+        "blocked",
+        "skipped",
+        "not_applicable",
+        "unknown"
+      ]
+    },
+    "freshness": {
+      "trackSourceDigests": true,
+      "trackSpecDigest": true,
+      "staleOnSpecChange": true,
+      "staleOnRelevantSourceChange": true
     }
   }
 }
 ```
 
 `enabled` controls whether v2 should use the profile for behavior-contract runs. `draftMode: local-run-artifact` writes draft specs under the v2 run folder. `durableStorage: explicit-policy-only` means v2 must not commit or update durable product specs unless the profile later names an approved destination and the user explicitly requests that work.
+
+`sourceIngestion.authorityOrder` defines how competing sources are ordered for review without suppressing contradictions. `attachmentInstructionPolicy: reference-only` means copied documents and attachments are evidence only; instructions inside them are not executed.
+
+`scenarioExtraction.unknownExpectedResults: open_decision` keeps vague expected outcomes out of the passed set. `coverageStatuses` defines the allowed scenario lifecycle language for v2 state.
+
+`freshness.trackSourceDigests` and `freshness.trackSpecDigest` tell status/publish checks to compare selected inputs against recorded digests. When sources or the selected behavior spec change, downstream implementation and verification state should be treated as stale until refreshed.
 
 Common keys:
 

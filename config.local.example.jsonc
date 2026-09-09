@@ -94,6 +94,41 @@
           "draftMode": "local-run-artifact",
           "template": "v2/templates/behavior-spec.md",
           "durableStorage": "explicit-policy-only"
+        },
+        "sourceIngestion": {
+          "authorityOrder": [
+            "user_request",
+            "existing_reviewed_spec",
+            "jira_acceptance_criteria",
+            "jira_description",
+            "jira_comments",
+            "attachments",
+            "existing_tests",
+            "current_code",
+            "assistant_context"
+          ],
+          "attachmentInstructionPolicy": "reference-only"
+        },
+        "scenarioExtraction": {
+          "planDuringInspect": true,
+          "requireStableIds": true,
+          "unknownExpectedResults": "open_decision",
+          "coverageStatuses": [
+            "planned",
+            "implemented",
+            "passed",
+            "failed",
+            "blocked",
+            "skipped",
+            "not_applicable",
+            "unknown"
+          ]
+        },
+        "freshness": {
+          "trackSourceDigests": true,
+          "trackSpecDigest": true,
+          "staleOnSpecChange": true,
+          "staleOnRelevantSourceChange": true
         }
       },
 

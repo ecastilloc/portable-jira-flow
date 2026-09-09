@@ -43,6 +43,8 @@ MUTABILITY_VALUES = {
 }
 WORKFLOW_V2_DRAFT_MODES = {"local-run-artifact"}
 WORKFLOW_V2_DURABLE_STORAGE = {"explicit-policy-only", "configured-durable-path"}
+WORKFLOW_V2_ATTACHMENT_POLICIES = {"reference-only"}
+WORKFLOW_V2_UNKNOWN_RESULTS = {"open_decision"}
 
 
 class ContractError(Exception):
@@ -344,7 +346,7 @@ def _validate_example_profile(profile: dict[str, Any], artifact_registry: dict[s
     base_refresh = _require_mapping(relationships.get("baseRefresh"), "config.profiles.example.relationships.baseRefresh")
     if base_refresh.get("strategy") != "merge":
         raise ContractError("config.profiles.example.relationships.baseRefresh.strategy: must default to merge")
-    for artifact_name in ["runState", "behaviorSpecDraft", "behaviorCoverage"]:
+    for artifact_name in ["runState", "sourcePack", "behaviorFacts", "behaviorSpecData", "behaviorSpecDraft", "behaviorCoverage"]:
         if artifact_name not in artifact_registry:
             raise ContractError(f"config.artifactRegistry.{artifact_name}: missing v2 MVP artifact")
 
@@ -372,6 +374,47 @@ def _validate_workflow_v2(profile_name: str, profile: dict[str, Any]) -> None:
             )
         if "template" in specs:
             _require_string(specs["template"], f"config.profiles.{profile_name}.workflowV2.behaviorSpecs.template")
+    ingestion = _optional_mapping(workflow, "sourceIngestion", f"config.profiles.{profile_name}.workflowV2")
+    if ingestion:
+        if "authorityOrder" in ingestion:
+            _require_string_array(
+                ingestion["authorityOrder"],
+                f"config.profiles.{profile_name}.workflowV2.sourceIngestion.authorityOrder",
+            )
+        if "attachmentInstructionPolicy" in ingestion:
+            _require_enum(
+                ingestion["attachmentInstructionPolicy"],
+                f"config.profiles.{profile_name}.workflowV2.sourceIngestion.attachmentInstructionPolicy",
+                WORKFLOW_V2_ATTACHMENT_POLICIES,
+            )
+    extraction = _optional_mapping(workflow, "scenarioExtraction", f"config.profiles.{profile_name}.workflowV2")
+    if extraction:
+        if "planDuringInspect" in extraction:
+            _require_boolean(
+                extraction["planDuringInspect"],
+                f"config.profiles.{profile_name}.workflowV2.scenarioExtraction.planDuringInspect",
+            )
+        if "requireStableIds" in extraction:
+            _require_boolean(
+                extraction["requireStableIds"],
+                f"config.profiles.{profile_name}.workflowV2.scenarioExtraction.requireStableIds",
+            )
+        if "unknownExpectedResults" in extraction:
+            _require_enum(
+                extraction["unknownExpectedResults"],
+                f"config.profiles.{profile_name}.workflowV2.scenarioExtraction.unknownExpectedResults",
+                WORKFLOW_V2_UNKNOWN_RESULTS,
+            )
+        if "coverageStatuses" in extraction:
+            _require_string_array(
+                extraction["coverageStatuses"],
+                f"config.profiles.{profile_name}.workflowV2.scenarioExtraction.coverageStatuses",
+            )
+    freshness = _optional_mapping(workflow, "freshness", f"config.profiles.{profile_name}.workflowV2")
+    if freshness:
+        for key in ["trackSourceDigests", "trackSpecDigest", "staleOnSpecChange", "staleOnRelevantSourceChange"]:
+            if key in freshness:
+                _require_boolean(freshness[key], f"config.profiles.{profile_name}.workflowV2.freshness.{key}")
 
 
 def _validate_template_references(config: dict[str, Any], root: Path) -> None:

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/portable-jira-flow/behavior-facts.v1.schema.json",
+  "title": "Portable Jira Flow V2 Behavior Facts V1",
+  "type": "object",
+  "required": ["schemaVersion", "ticketKey", "generatedAt", "sourcePackDigest", "actors", "goals", "domainTerms", "businessRules", "constraints", "nonFunctionalRequirements", "exclusions", "contradictions", "openDecisions", "digestAlgorithm", "digest"],
+  "properties": {
+    "schemaVersion": {"const": "1.0.0"},
+    "ticketKey": {"type": "string"},
+    "generatedAt": {"type": "string"},
+    "sourcePackDigest": {"type": "string"},
+    "actors": {"type": "array", "items": {"type": "object"}},
+    "goals": {"type": "array", "items": {"type": "object"}},
+    "domainTerms": {"type": "array", "items": {"type": "object"}},
+    "businessRules": {"type": "array", "items": {"type": "object"}},
+    "constraints": {"type": "array", "items": {"type": "object"}},
+    "nonFunctionalRequirements": {"type": "array", "items": {"type": "object"}},
+    "exclusions": {"type": "array", "items": {"type": "object"}},
+    "contradictions": {"type": "array", "items": {"type": "object"}},
+    "openDecisions": {"type": "array", "items": {"type": "object"}},
+    "digestAlgorithm": {"const": "sha256"},
+    "digest": {"type": "string"}
+  },
+  "additionalProperties": true
+}
+

@@ -21,7 +21,9 @@ Use this file for command parsing, stage ordering, user-facing behavior, and leg
 
 ## Opt-In V2 Commands
 
-`portable-jira-flow-v2` is a separate pilot that shares the selected local profile while writing to a v2 run namespace. Its MVP command surface is `doctor`, `inspect <ticket>`, and `status <ticket>`. V2 adds behavior-spec digests, scenario coverage, and provenance to those commands without changing the v1 command meanings above.
+`portable-jira-flow-v2` is a separate pilot that shares the selected local profile while writing to a v2 run namespace. Its MVP command surface is `doctor`, `inspect <ticket>`, and `status <ticket>`. V2 adds source packs, extracted behavior facts, machine-readable behavior specs, behavior-spec digests, scenario coverage, and provenance to those commands without changing the v1 command meanings above.
+
+`portable-jira-flow-v2 inspect <ticket>` accepts redacted local source files or source notes with `--source` and `--source-note`. It does not fetch live Jira in the MVP slice.
 
 ## Command Details
 

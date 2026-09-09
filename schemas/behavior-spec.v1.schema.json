@@ -3,14 +3,22 @@
   "$id": "https://example.com/portable-jira-flow/behavior-spec.v1.schema.json",
   "title": "Portable Jira Flow Behavior Spec V1",
   "type": "object",
-  "required": ["id", "status", "changeRequests", "requirements", "scenarios", "provenance"],
+  "required": ["schemaVersion", "ticketKey", "id", "status", "changeRequests", "sourcePackDigest", "factsDigest", "requirements", "useCases", "scenarios", "coverage", "provenance", "digestAlgorithm", "digest"],
   "properties": {
+    "schemaVersion": {"const": "1.0.0"},
+    "ticketKey": {"type": "string"},
     "id": {"type": "string"},
     "status": {"enum": ["draft", "reviewed", "retired"]},
     "changeRequests": {"type": "array", "items": {"type": "string"}},
+    "sourcePackDigest": {"type": "string"},
+    "factsDigest": {"type": "string"},
     "requirements": {"type": "array", "items": {"type": "object"}},
+    "useCases": {"type": "array", "items": {"type": "object"}},
     "scenarios": {"type": "array", "items": {"type": "object"}},
-    "provenance": {"type": "array", "items": {"type": "object"}}
+    "coverage": {"type": "object"},
+    "provenance": {"type": "object"},
+    "digestAlgorithm": {"const": "sha256"},
+    "digest": {"type": "string"}
   },
   "additionalProperties": true
 }

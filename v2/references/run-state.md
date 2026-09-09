@@ -41,7 +41,15 @@ Minimum v2 state:
     "durable": false,
     "selectedAt": "2026-01-01T00:00:00Z",
     "sourceRevision": null,
-    "warnings": []
+    "warnings": [],
+    "contractPath": "behavior-spec.json",
+    "contractDigest": "",
+    "sourcePackPath": "source-pack.json",
+    "sourcePackDigest": "",
+    "factsPath": "behavior-facts.json",
+    "factsDigest": "",
+    "openDecisionCount": 0,
+    "contradictionCount": 0
   },
   "coverage": {
     "requirements": [],
@@ -73,3 +81,18 @@ Minimum v2 state:
 ```
 
 Old v1 runs remain readable as historical context. V2 must not rewrite a v1 run to schema `2.0.0`.
+
+## Inspect State
+
+`inspect` is the first v2 command that writes the full behavior pipeline. It updates:
+
+- `behaviorSpec.path` and `behaviorSpec.digest` for the rendered `behavior-spec.md`
+- `behaviorSpec.contractPath` and `behaviorSpec.contractDigest` for `behavior-spec.json`
+- `behaviorSpec.sourcePackPath` and `behaviorSpec.sourcePackDigest` for `source-pack.json`
+- `behaviorSpec.factsPath` and `behaviorSpec.factsDigest` for `behavior-facts.json`
+- `coverage.requirements`, `coverage.scenarios`, and `coverage.summary`
+- `provenance.sources`, `provenance.decisions`, and `provenance.contradictions`
+- `stages.inspect.status`, which is `blocked` when contradictions exist
+- `nextAction`, which points to review, inspect, or start depending on open decisions
+
+`run.json` remains the execution authority. The behavior spec is the behavior contract; it does not grant permission to commit, push, publish, mutate environments, or update external systems.

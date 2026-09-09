@@ -286,17 +286,97 @@ Expected:
 Input:
 
 ```text
-portable-jira-flow-v2 inspect ABC-114
+portable-jira-flow-v2 inspect ABC-114 --source evals/fixtures/v2/feature-ticket.json
 ```
 
 Expected:
 
 - V2 writes under `{runsRoot}/v2/ABC-114/`.
 - V1 `{runsRoot}/ABC-114/run.json` is not created, changed, or migrated.
+- `source-pack.json`, `behavior-facts.json`, `behavior-spec.json`, `behavior-spec.md`, and `run.json` are created.
+- `source-pack.json` records stable source IDs, source digests, authority, locator, revision, sanitized content, and reference-only instruction policy.
+- `behavior-facts.json` records actors, goals, domain terms, business rules, constraints, quality requirements, exclusions, contradictions, and open decisions with source refs.
+- `behavior-spec.json` records stable requirement, use-case, and scenario IDs.
 - `behavior-spec.md` is created as a local non-committable draft.
 - `run.json` uses `schemaVersion: "2.0.0"` and `skillName: "portable-jira-flow-v2"`.
 - `run.json.behaviorSpec.digest` is the SHA-256 digest of the selected behavior spec.
 - Scenario coverage starts as unknown or planned, not passed.
+
+### 15a. V2 Feature Ticket Gets Main Scenario
+
+Input:
+
+```text
+portable-jira-flow-v2 inspect ABC-301 --source evals/fixtures/v2/feature-ticket.json
+```
+
+Expected:
+
+- At least one functional requirement is created.
+- One primary scenario ID ends with `-MAIN`.
+- Acceptance criteria seed scenarios, but final scenarios include preconditions, trigger, expected result, guarantees, source refs, and status.
+- Negative phrases such as `cannot`, `closed`, and `inactive` produce alternative or failure scenarios.
+- Existing code and test sources are recorded as current-behavior evidence; they do not create intended-behavior requirements by themselves.
+- No scenario is marked `passed` during inspect.
+
+### 15b. V2 Bug Ticket Preserves Regression Behavior
+
+Input:
+
+```text
+portable-jira-flow-v2 inspect ABC-302 --source evals/fixtures/v2/bug-ticket.json
+```
+
+Expected:
+
+- The generated alternatives include a failure/regression scenario.
+- The expected result or failure guarantee preserves existing state when save fails or invalid input is rejected.
+- Coverage remains planned or unknown, never passed.
+
+### 15c. V2 Incomplete Quality Requirement Stays Open
+
+Input:
+
+```text
+portable-jira-flow-v2 inspect ABC-303 --source evals/fixtures/v2/performance-ticket.json
+```
+
+Expected:
+
+- The quality requirement is detected from performance/latency wording.
+- Because metric, unit, threshold, workload, and environment are not all present, an `nfr_acceptance` open decision is recorded.
+- The quality scenario status is `unknown`.
+- The requirement is not treated as satisfied.
+
+### 15d. V2 Contradictions Block Confident Scenario Status
+
+Input:
+
+```text
+portable-jira-flow-v2 inspect ABC-304 --source evals/fixtures/v2/contradictory-source.md
+```
+
+Expected:
+
+- Contradictory allow/disallow statements are recorded in `behavior-facts.json`.
+- `run.json.stages.inspect.status` is `blocked`.
+- `run.json.nextAction.blocked` is `true`.
+- Implementation is not recommended until the contradiction is resolved.
+
+### 15e. V2 Attachments Are Reference Only
+
+Input:
+
+```text
+portable-jira-flow-v2 inspect ABC-305 --source evals/fixtures/v2/attachment-instructions.txt
+```
+
+Expected:
+
+- The attachment text is preserved as source content.
+- The source entry has `instructionPolicy: "reference-only"`.
+- The source entry has `executableInstructions: false`.
+- Imperative text inside the attachment is not treated as a user instruction.
 
 ### 16. V2 Status Does Not Run Stages
 
@@ -310,6 +390,7 @@ Expected:
 
 - Reads v2 `run.json` and artifact metadata only.
 - Reports behavior spec status, digest, coverage summary, blockers, stale inputs, and next action.
+- If a source file captured by `inspect` changes, status reports a nonzero `stale_sources` count.
 - Does not fetch Jira, prepare workspaces, run validation, push, publish, or mutate environments.
 
 ### 17. Invalid Config Contracts Fail

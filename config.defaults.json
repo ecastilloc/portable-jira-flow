@@ -494,6 +494,58 @@
       "committable": false,
       "retention": "keep"
     },
+    "sourcePack": {
+      "path": "source-pack.json",
+      "producer": "inspect",
+      "consumers": [
+        "inspect",
+        "implement",
+        "verify",
+        "publish",
+        "status",
+        "report"
+      ],
+      "sourceOfTruth": false,
+      "derived": false,
+      "userFacing": false,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep"
+    },
+    "behaviorFacts": {
+      "path": "behavior-facts.json",
+      "producer": "inspect",
+      "consumers": [
+        "implement",
+        "verify",
+        "publish",
+        "status",
+        "report"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": false,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep"
+    },
+    "behaviorSpecData": {
+      "path": "behavior-spec.json",
+      "producer": "inspect",
+      "consumers": [
+        "implement",
+        "verify",
+        "publish",
+        "status",
+        "report"
+      ],
+      "sourceOfTruth": false,
+      "derived": false,
+      "userFacing": false,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep"
+    },
     "behaviorSpecDraft": {
       "path": "behavior-spec.md",
       "producer": "inspect",
