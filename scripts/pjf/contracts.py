@@ -346,7 +346,16 @@ def _validate_example_profile(profile: dict[str, Any], artifact_registry: dict[s
     base_refresh = _require_mapping(relationships.get("baseRefresh"), "config.profiles.example.relationships.baseRefresh")
     if base_refresh.get("strategy") != "merge":
         raise ContractError("config.profiles.example.relationships.baseRefresh.strategy: must default to merge")
-    for artifact_name in ["runState", "sourcePack", "behaviorFacts", "behaviorSpecData", "behaviorSpecDraft", "behaviorCoverage"]:
+    for artifact_name in [
+        "runState",
+        "sourcePack",
+        "behaviorFacts",
+        "behaviorSpecData",
+        "behaviorSpecDraft",
+        "behaviorCoverage",
+        "behaviorImplementationPlanData",
+        "behaviorImplementationPlanDraft",
+    ]:
         if artifact_name not in artifact_registry:
             raise ContractError(f"config.artifactRegistry.{artifact_name}: missing v2 MVP artifact")
 

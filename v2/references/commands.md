@@ -8,13 +8,13 @@ V2 uses spec-development command names while sharing the same profile, safety, r
 |---|---|
 | `doctor` | Validates merged runtime config using the shared loader, then checks v2 schemas and optional `workflowV2` profile keys. It is read-only and reports structural facts only. |
 | `specify <ticket>` | Ingests supplied local source material, writes the source pack, behavior facts, machine-readable behavior spec, rendered review spec, provenance, unresolved decisions, coverage summary, and freshness digests in v2 `run.json`. |
-| `trace <ticket>` | Reads v2 `run.json`, reports spec digest, scenario coverage state, stale source/spec digests, blockers, and next action. It does not run stages. |
+| `trace <ticket>` | Reads v2 `run.json`, reports spec digest, scenario coverage state, plan status, stale source/spec digests, blockers, and next action. It does not run stages. |
+| `plan <ticket>` | Pins the selected behavior contract digests, checks source/spec freshness, writes implementation task scaffolds, records blocking open decisions, and updates v2 `run.json`. It does not prepare workspaces, create branches, fetch Jira, or edit product code. |
 
 ## Later Commands
 
 | Command | V2 addition |
 |---|---|
-| `plan <ticket>` | Pins the selected spec digest alongside workspace, branch, base SHA, implementation tasks, and baseline inputs. |
 | `implement <ticket>` | Requires a selected behavior spec unless overridden by policy. Meaningful edits trace to a requirement, scenario, assumption, or technical constraint. |
 | `verify <ticket>` | Records actual assertion results by scenario ID and keeps expected behavior independent from implementation outcome. |
 | `publish <ticket>` | Adds spec/code/test consistency and stale-digest checks to the existing committed-HEAD gates. |
@@ -29,7 +29,7 @@ Compatibility aliases:
 |---|---|
 | `inspect` | `specify` |
 | `status` | `trace` |
-| `start` | `plan` once v2 plan is implemented |
+| `start` | `plan` |
 
 V1 aliases remain compatibility inputs for v1. V2 should prefer spec-development command names in new output.
 
@@ -53,7 +53,18 @@ Do not fetch live Jira during this slice. A caller may pass exported/redacted Ji
 - `behavior-spec.md`
 - `run.json`
 
+`plan` writes these local, non-committable artifacts in the same v2 run directory:
+
+- `implementation-plan.json`
+- `implementation-plan.md`
+
 `init` remains a compatibility/debug alias for the older scaffold behavior that only creates a local behavior-spec draft and v2 run state.
+
+## Plan Gate
+
+`plan` requires a completed v2 `specify` run. It loads `source-pack.json`, `behavior-facts.json`, `behavior-spec.json`, `behavior-spec.md`, and `run.json`; recomputes source, facts, contract, and markdown digests; and blocks when any dependent input is stale. It also blocks implementation readiness when contradictions exist or open decisions affect expected behavior.
+
+A successful plan updates `stages.plan`, stores pinned digests under `plan.selectedBehaviorSpec`, and sets `nextAction` to `portable-jira-flow-v2 implement <ticket>`. A blocked plan still writes the plan artifacts and sets `nextAction` back to `portable-jira-flow-v2 specify <ticket>` with the blocker reason.
 
 ## Trace Freshness
 

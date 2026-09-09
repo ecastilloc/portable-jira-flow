@@ -27,6 +27,8 @@ Durable product specs require explicit configuration, for example a profile-owne
 | `behavior-spec.json` | specify | Machine-readable behavior contract with stable requirement, use-case, and scenario IDs. |
 | `behavior-spec.md` | specify | Human-readable review draft rendered from `behavior-spec.json`. |
 | `run.json` | workflow | Execution authority for selected artifact paths, digests, coverage summary, blocked state, and next action. |
+| `implementation-plan.json` | plan | Machine-readable task scaffold pinned to the selected behavior contract digests. |
+| `implementation-plan.md` | plan | Human-readable implementation plan derived from planned scenarios and open decisions. |
 
 ## Minimum Fields
 
@@ -76,5 +78,7 @@ Quality scenarios need all of these before they can be accepted as verifiable re
 If any quality field is missing, create an open decision and keep the scenario status `unknown`.
 
 ## Freshness
+
+`plan` pins the source pack, behavior facts, machine-readable behavior spec, and rendered behavior spec digests before implementation tasks are considered ready. It treats open decisions about expected behavior as blockers and keeps the current code/test evidence separate from intended behavior.
 
 Every v2 result that depends on intended behavior records the selected spec digest. If the source pack, behavior facts, machine-readable spec, or rendered spec content changes, dependent implementation, verification, publish, trace, and report views become stale until refreshed.

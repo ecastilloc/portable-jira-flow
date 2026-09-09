@@ -584,6 +584,42 @@
       "committable": false,
       "retention": "keep"
     },
+    "behaviorImplementationPlanData": {
+      "path": "implementation-plan.json",
+      "producer": "plan",
+      "consumers": [
+        "plan",
+        "implement",
+        "verify",
+        "publish",
+        "trace",
+        "report"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": false,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep"
+    },
+    "behaviorImplementationPlanDraft": {
+      "path": "implementation-plan.md",
+      "producer": "plan",
+      "consumers": [
+        "plan",
+        "implement",
+        "verify",
+        "publish",
+        "trace",
+        "report"
+      ],
+      "sourceOfTruth": false,
+      "derived": true,
+      "userFacing": true,
+      "privacyLevel": "internal",
+      "committable": false,
+      "retention": "keep"
+    },
     "artifactIndex": {
       "path": "artifact-index.md",
       "producer": "report",

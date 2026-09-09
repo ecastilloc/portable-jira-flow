@@ -10,6 +10,7 @@ from pathlib import Path
 
 from pjf.config_loader import load_runtime_config, resolve_profile
 from pjf.contracts import ContractError, validate_run_state, validate_runtime_config_contract
+from pjf.v2_plan import write_plan_artifacts
 from pjf.v2_specify import status_freshness, write_specify_artifacts
 from pjf.v2_contracts import (
     behavior_template_path,
@@ -116,6 +117,41 @@ def specify(args: argparse.Namespace) -> int:
     return 0
 
 
+def plan(args: argparse.Namespace) -> int:
+    skill_root = Path(args.skill_root).expanduser().resolve()
+    loaded = load_runtime_config(skill_root)
+    validate_runtime_config_contract(loaded.config, root=skill_root)
+    ticket = ticket_arg(args)
+    args.ticket = ticket
+    profile_name, profile = resolve_profile(loaded.config, args.profile)
+    run_dir = resolve_run_dir(args, skill_root, profile)
+    state = read_json(run_dir / "run.json", {})
+    state, plan_data = write_plan_artifacts(
+        run_dir=run_dir,
+        ticket=ticket,
+        profile_name=profile_name,
+        existing_state=state,
+    )
+    validate_run_state(state, v2=True)
+    write_v2_state(run_dir, state)
+    readiness = plan_data.get("readiness") or {}
+    task_count = len(plan_data.get("implementationTasks") or [])
+    stale = readiness.get("freshness") or {}
+    prefix = "[BLOCKED]" if readiness.get("status") == "blocked" else "[OK]"
+    print(
+        f"{prefix} v2 plan "
+        f"ticket={ticket} "
+        f"status={readiness.get('status')} "
+        f"tasks={task_count} "
+        f"blocking_decisions={readiness.get('blockingOpenDecisionCount', 0)} "
+        f"contradictions={readiness.get('contradictionCount', 0)} "
+        f"stale_sources={len(stale.get('staleSources') or [])} "
+        f"stale_artifacts={len(stale.get('staleArtifacts') or [])} "
+        f"digest={str(plan_data.get('digest') or '')[:12]}"
+    )
+    return 1 if readiness.get("status") == "blocked" else 0
+
+
 def trace(args: argparse.Namespace) -> int:
     if args.run_dir:
         run_dir = Path(args.run_dir).expanduser().resolve()
@@ -131,6 +167,7 @@ def trace(args: argparse.Namespace) -> int:
     validate_run_state(state, v2=True)
     spec = state.get("behaviorSpec") or {}
     coverage = (state.get("coverage") or {}).get("summary") or {}
+    plan_state = (state.get("stages") or {}).get("plan") or {}
     freshness = status_freshness(state)
     print(
         "[OK] v2 trace "
@@ -142,6 +179,7 @@ def trace(args: argparse.Namespace) -> int:
         f"passed={coverage.get('passed', 0)} "
         f"unknown={coverage.get('unknown', 0)} "
         f"open_decisions={spec.get('openDecisionCount', 0)} "
+        f"plan_status={plan_state.get('status', 'not_requested')} "
         f"stale_sources={len(freshness['staleSources'])} "
         f"spec_stale={'yes' if freshness['specMarkdownStale'] or freshness['specContractStale'] else 'no'}"
     )
@@ -176,6 +214,18 @@ def main(argv: list[str]) -> int:
     init_parser.add_argument("--run-dir", default=None)
     init_parser.add_argument("--force", action="store_true")
     init_parser.set_defaults(func=init)
+
+
+    plan_parser = subparsers.add_parser(
+        "plan",
+        aliases=["start"],
+        help="Pin the current v2 behavior contract and derive implementation tasks.",
+    )
+    plan_parser.add_argument("ticket_arg", nargs="?")
+    plan_parser.add_argument("--ticket", default=None)
+    plan_parser.add_argument("--profile", default=None)
+    plan_parser.add_argument("--run-dir", default=None)
+    plan_parser.set_defaults(func=plan)
 
     trace_parser = subparsers.add_parser(
         "trace",

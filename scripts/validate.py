@@ -6,7 +6,9 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 from pjf.config_loader import ConfigLoadError, load_example_config, read_jsonc
@@ -70,6 +72,8 @@ REQUIRED_ARTIFACTS = {
     "behaviorSpecData",
     "behaviorSpecDraft",
     "behaviorCoverage",
+    "behaviorImplementationPlanData",
+    "behaviorImplementationPlanDraft",
 }
 PRIVATE_TERMS = [
     "/Users/" + "W" + "490" + "623",
@@ -128,6 +132,92 @@ def strip_jsonc(text: str) -> str:
         output.append(char)
         i += 1
     return "".join(output)
+
+
+
+def _matches_json_type(value: object, expected: object) -> bool:
+    if isinstance(expected, list):
+        return any(_matches_json_type(value, item) for item in expected)
+    if expected == "object":
+        return isinstance(value, dict)
+    if expected == "array":
+        return isinstance(value, list)
+    if expected == "string":
+        return isinstance(value, str)
+    if expected == "boolean":
+        return isinstance(value, bool)
+    if expected == "null":
+        return value is None
+    if expected == "integer":
+        return isinstance(value, int) and not isinstance(value, bool)
+    if expected == "number":
+        return isinstance(value, (int, float)) and not isinstance(value, bool)
+    return True
+
+
+def validate_schema_value(value: object, schema: dict, path: str) -> None:
+    if "const" in schema and value != schema["const"]:
+        raise ValidationError(f"{path}: expected constant {schema['const']!r}")
+    if "enum" in schema and value not in schema["enum"]:
+        raise ValidationError(f"{path}: expected one of {schema['enum']!r}")
+    if "type" in schema and not _matches_json_type(value, schema["type"]):
+        raise ValidationError(f"{path}: expected JSON type {schema['type']!r}")
+
+    schema_type = schema.get("type")
+    if schema_type == "object" or (isinstance(schema_type, list) and "object" in schema_type):
+        if not isinstance(value, dict):
+            return
+        for key in schema.get("required", []):
+            if key not in value:
+                raise ValidationError(f"{path}.{key}: missing required key")
+        properties = schema.get("properties") or {}
+        for key, child_schema in properties.items():
+            if key in value and isinstance(child_schema, dict):
+                validate_schema_value(value[key], child_schema, f"{path}.{key}")
+    if schema_type == "array" or (isinstance(schema_type, list) and "array" in schema_type):
+        if not isinstance(value, list):
+            return
+        item_schema = schema.get("items")
+        if isinstance(item_schema, dict):
+            for index, item in enumerate(value):
+                validate_schema_value(item, item_schema, f"{path}[{index}]")
+
+
+def validate_json_artifact(root: Path, schema_name: str, artifact_path: Path) -> None:
+    schema = read_json(root / "schemas" / schema_name)
+    document = read_json(artifact_path)
+    validate_schema_value(document, schema, artifact_path.name)
+
+
+def validate_v2_fixture_artifacts(root: Path) -> None:
+    with tempfile.TemporaryDirectory() as raw_tmp:
+        tmp = Path(raw_tmp)
+        run_dir = tmp / "v2" / "ABC-900"
+        base = ["python3", str(root / "scripts" / "v2_contract.py"), "--skill-root", str(root)]
+        commands = [
+            base + [
+                "specify",
+                "ABC-900",
+                "--run-dir",
+                str(run_dir),
+                "--source",
+                str(root / "evals" / "fixtures" / "v2" / "feature-ticket.json"),
+                "--force",
+            ],
+            base + ["plan", "ABC-900", "--run-dir", str(run_dir)],
+        ]
+        for command in commands:
+            result = subprocess.run(command, cwd=root, text=True, capture_output=True, check=False)
+            if result.returncode != 0:
+                raise ValidationError(result.stderr.strip() or result.stdout.strip())
+        for schema_name, artifact_name in [
+            ("source-pack.v1.schema.json", "source-pack.json"),
+            ("behavior-facts.v1.schema.json", "behavior-facts.json"),
+            ("behavior-spec.v1.schema.json", "behavior-spec.json"),
+            ("implementation-plan.v1.schema.json", "implementation-plan.json"),
+            ("run-state.v2.schema.json", "run.json"),
+        ]:
+            validate_json_artifact(root, schema_name, run_dir / artifact_name)
 
 
 def validate_frontmatter(path: Path, expected_name: str = SKILL_NAME) -> None:
@@ -256,7 +346,7 @@ def validate_scripts(root: Path) -> None:
             raise ValidationError(f"missing script: {path}")
         if path.stat().st_size == 0:
             raise ValidationError(f"empty script: {path}")
-    for name in ["config_loader.py", "contracts.py", "state_writer.py", "v2_contracts.py", "v2_specify.py"]:
+    for name in ["config_loader.py", "contracts.py", "state_writer.py", "v2_contracts.py", "v2_plan.py", "v2_specify.py"]:
         path = root / "scripts" / "pjf" / name
         if not path.exists():
             raise ValidationError(f"missing shared helper: {path}")
@@ -284,6 +374,7 @@ def validate_v2(root: Path) -> None:
         "source-pack.v1.schema.json",
         "behavior-facts.v1.schema.json",
         "behavior-spec.v1.schema.json",
+        "implementation-plan.v1.schema.json",
     ]:
         path = root / "schemas" / name
         if not path.exists():
@@ -301,6 +392,7 @@ def validate_v2(root: Path) -> None:
             raise ValidationError(f"missing v2 fixture: {path}")
         if path.stat().st_size == 0:
             raise ValidationError(f"empty v2 fixture: {path}")
+    validate_v2_fixture_artifacts(root)
 
 
 def main(argv: list[str]) -> int:

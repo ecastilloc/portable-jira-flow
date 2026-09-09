@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/portable-jira-flow/implementation-plan.v1.schema.json",
+  "title": "Portable Jira Flow V2 Implementation Plan V1",
+  "type": "object",
+  "required": ["schemaVersion", "ticketKey", "generatedAt", "selectedBehaviorSpec", "readiness", "implementationTasks", "decisionTasks", "coveragePlan", "baselineInputs", "nextActions", "digestAlgorithm", "digest"],
+  "properties": {
+    "schemaVersion": {"const": "1.0.0"},
+    "ticketKey": {"type": "string"},
+    "profile": {"type": ["string", "null"]},
+    "generatedAt": {"type": "string"},
+    "selectedBehaviorSpec": {"type": "object"},
+    "readiness": {"type": "object"},
+    "implementationTasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "status", "title", "requirementIds", "scenarioIds", "coverageRequired"],
+        "properties": {
+          "id": {"type": "string"},
+          "type": {"const": "implementation"},
+          "status": {"type": "string"},
+          "title": {"type": "string"},
+          "requirementIds": {"type": "array", "items": {"type": "string"}},
+          "useCaseIds": {"type": "array", "items": {"type": "string"}},
+          "scenarioIds": {"type": "array", "items": {"type": "string"}},
+          "coverageRequired": {"type": "boolean"}
+        },
+        "additionalProperties": true
+      }
+    },
+    "decisionTasks": {"type": "array", "items": {"type": "object"}},
+    "coveragePlan": {"type": "object"},
+    "baselineInputs": {"type": "object"},
+    "nextActions": {"type": "array", "items": {"type": "object"}},
+    "digestAlgorithm": {"const": "sha256"},
+    "digest": {"type": "string"}
+  },
+  "additionalProperties": true
+}

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fixture checks for the portable-jira-flow v2 specify pipeline."""
+"""Fixture checks for the portable-jira-flow v2 specify and plan pipeline."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ SCRIPT = ROOT / "scripts" / "v2_contract.py"
 FIXTURES = ROOT / "evals" / "fixtures" / "v2"
 
 
-class V2SpecifyTest(unittest.TestCase):
+class V2ContractPipelineTest(unittest.TestCase):
     def run_specify(
         self,
         ticket: str,
@@ -44,6 +44,33 @@ class V2SpecifyTest(unittest.TestCase):
             check=False,
         )
         self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+        return result
+
+
+    def run_plan(
+        self,
+        ticket: str,
+        run_dir: Path,
+        command: str = "plan",
+        expected_returncode: int = 0,
+    ) -> subprocess.CompletedProcess[str]:
+        result = subprocess.run(
+            [
+                "python3",
+                str(SCRIPT),
+                "--skill-root",
+                str(ROOT),
+                command,
+                ticket,
+                "--run-dir",
+                str(run_dir),
+            ],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, expected_returncode, result.stderr + result.stdout)
         return result
 
     def run_trace(self, run_dir: Path, command: str = "trace") -> subprocess.CompletedProcess[str]:
@@ -174,6 +201,76 @@ class V2SpecifyTest(unittest.TestCase):
             self.assertIn("[OK] v2 specify", specify.stdout)
             self.assertIn("[OK] v2 trace", trace.stdout)
             self.assertEqual(state["invocation"]["primaryCommand"], "specify")
+
+    def test_plan_pins_fresh_spec_and_creates_task_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as raw_tmp:
+            run_dir = Path(raw_tmp) / "v2" / "ABC-309"
+            self.run_specify("ABC-309", FIXTURES / "feature-ticket.json", run_dir)
+            plan = self.run_plan("ABC-309", run_dir)
+            plan_data = self.read_json(run_dir, "implementation-plan.json")
+            state = self.read_json(run_dir, "run.json")
+
+            self.assertIn("[OK] v2 plan", plan.stdout)
+            self.assertEqual(plan_data["readiness"]["status"], "ready")
+            self.assertGreaterEqual(len(plan_data["implementationTasks"]), 1)
+            self.assertTrue(all(task["scenarioIds"] for task in plan_data["implementationTasks"]))
+            self.assertEqual(state["invocation"]["primaryCommand"], "plan")
+            self.assertEqual(state["stages"]["plan"]["status"], "complete")
+            self.assertEqual(state["stages"]["plan"]["implementationPlanDigest"], plan_data["digest"])
+            self.assertFalse((Path(raw_tmp) / "ABC-309" / "run.json").exists())
+
+    def test_plan_blocks_stale_source_digest(self) -> None:
+        with tempfile.TemporaryDirectory() as raw_tmp:
+            tmp = Path(raw_tmp)
+            source = tmp / "feature-ticket.json"
+            shutil.copyfile(FIXTURES / "feature-ticket.json", source)
+            run_dir = tmp / "v2" / "ABC-310"
+            self.run_specify("ABC-310", source, run_dir)
+            data = json.loads(source.read_text(encoding="utf-8"))
+            data["fields"]["description"] += " The system cannot assign a missing User."
+            source.write_text(json.dumps(data, indent=2), encoding="utf-8")
+
+            plan = self.run_plan("ABC-310", run_dir, expected_returncode=1)
+            plan_data = self.read_json(run_dir, "implementation-plan.json")
+            state = self.read_json(run_dir, "run.json")
+
+            self.assertIn("[BLOCKED] v2 plan", plan.stdout)
+            self.assertEqual(plan_data["readiness"]["status"], "blocked")
+            self.assertIn("SRC-001", plan_data["readiness"]["freshness"]["staleSources"])
+            self.assertEqual(state["stages"]["plan"]["status"], "blocked")
+            self.assertEqual(state["nextAction"]["command"], "portable-jira-flow-v2 specify ABC-310")
+
+    def test_plan_blocks_contradictory_source(self) -> None:
+        with tempfile.TemporaryDirectory() as raw_tmp:
+            run_dir = Path(raw_tmp) / "v2" / "ABC-311"
+            self.run_specify("ABC-311", FIXTURES / "contradictory-source.md", run_dir)
+            self.run_plan("ABC-311", run_dir, expected_returncode=1)
+            plan_data = self.read_json(run_dir, "implementation-plan.json")
+            self.assertTrue(any(blocker["kind"] == "contradiction" for blocker in plan_data["readiness"]["blockers"]))
+            self.assertGreaterEqual(plan_data["readiness"]["contradictionCount"], 1)
+
+    def test_plan_blocks_open_nfr_decision_before_implementation(self) -> None:
+        with tempfile.TemporaryDirectory() as raw_tmp:
+            run_dir = Path(raw_tmp) / "v2" / "ABC-312"
+            self.run_specify("ABC-312", FIXTURES / "performance-ticket.json", run_dir)
+            self.run_plan("ABC-312", run_dir, expected_returncode=1)
+            plan_data = self.read_json(run_dir, "implementation-plan.json")
+            blocking = [task for task in plan_data["decisionTasks"] if task["blocksImplementation"]]
+            self.assertTrue(any(task["decisionKind"] == "nfr_acceptance" for task in blocking))
+            self.assertTrue(any(blocker["kind"] == "blocking_open_decisions" for blocker in plan_data["readiness"]["blockers"]))
+
+    def test_v2_start_alias_routes_to_plan_without_v1_state(self) -> None:
+        with tempfile.TemporaryDirectory() as raw_tmp:
+            run_dir = Path(raw_tmp) / "v2" / "ABC-313"
+            self.run_specify("ABC-313", FIXTURES / "feature-ticket.json", run_dir)
+            start = self.run_plan("ABC-313", run_dir, command="start")
+            state = self.read_json(run_dir, "run.json")
+
+            self.assertIn("[OK] v2 plan", start.stdout)
+            self.assertEqual(state["invocation"]["primaryCommand"], "plan")
+            self.assertIn("plan", state["stages"])
+            self.assertNotIn("start", state["stages"])
+            self.assertFalse((Path(raw_tmp) / "ABC-313" / "run.json").exists())
 
 
 if __name__ == "__main__":

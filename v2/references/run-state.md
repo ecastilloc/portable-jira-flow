@@ -75,6 +75,17 @@ Minimum v2 state:
     "reason": "Review and refine the generated behavior contract before implementation.",
     "blocked": false
   },
+  "plan": {
+    "status": "ready",
+    "path": "implementation-plan.json",
+    "digestAlgorithm": "sha256",
+    "digest": "",
+    "markdownPath": "implementation-plan.md",
+    "markdownDigest": "",
+    "selectedBehaviorSpec": {},
+    "implementationTaskCount": 0,
+    "blockingOpenDecisionCount": 0
+  },
   "artifacts": [],
   "artifactRegistrySnapshot": {}
 }
@@ -94,5 +105,17 @@ Old v1 runs remain readable as historical context. V2 must not rewrite a v1 run 
 - `provenance.sources`, `provenance.decisions`, and `provenance.contradictions`
 - `stages.specify.status`, which is `blocked` when contradictions exist
 - `nextAction`, which points to review, specify, or plan depending on open decisions
+
+## Plan State
+
+`plan` pins the current `source-pack.json`, `behavior-facts.json`, `behavior-spec.json`, and `behavior-spec.md` digests and writes `implementation-plan.json` plus `implementation-plan.md`. It updates:
+
+- `stages.plan.status`, which is `complete` only when the behavior contract is fresh, contradictions are absent, and no open decision blocks implementation
+- `stages.plan.sourcePackDigest`, `factsDigest`, `contractDigest`, and `behaviorSpecDigest`
+- `stages.plan.implementationPlanPath` and `implementationPlanMarkdownPath`
+- `plan.selectedBehaviorSpec`, `plan.digest`, and `plan.markdownDigest`
+- `nextAction`, which points to `implement` when ready or back to `specify` when blocked
+
+`start` is a v2 compatibility alias for `plan`; v2 must not write a `stages.start` entry or create v1 run directories.
 
 `run.json` remains the execution authority. The behavior spec is the behavior contract; it does not grant permission to commit, push, publish, mutate environments, or update external systems.
