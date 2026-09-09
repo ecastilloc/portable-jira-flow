@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fixture checks for the portable-jira-flow v2 inspect pipeline."""
+"""Fixture checks for the portable-jira-flow v2 specify pipeline."""
 
 from __future__ import annotations
 
@@ -16,15 +16,21 @@ SCRIPT = ROOT / "scripts" / "v2_contract.py"
 FIXTURES = ROOT / "evals" / "fixtures" / "v2"
 
 
-class V2InspectTest(unittest.TestCase):
-    def run_inspect(self, ticket: str, source: Path, run_dir: Path) -> subprocess.CompletedProcess[str]:
+class V2SpecifyTest(unittest.TestCase):
+    def run_specify(
+        self,
+        ticket: str,
+        source: Path,
+        run_dir: Path,
+        command: str = "specify",
+    ) -> subprocess.CompletedProcess[str]:
         result = subprocess.run(
             [
                 "python3",
                 str(SCRIPT),
                 "--skill-root",
                 str(ROOT),
-                "inspect",
+                command,
                 ticket,
                 "--run-dir",
                 str(run_dir),
@@ -40,14 +46,14 @@ class V2InspectTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
         return result
 
-    def run_status(self, run_dir: Path) -> subprocess.CompletedProcess[str]:
+    def run_trace(self, run_dir: Path, command: str = "trace") -> subprocess.CompletedProcess[str]:
         result = subprocess.run(
             [
                 "python3",
                 str(SCRIPT),
                 "--skill-root",
                 str(ROOT),
-                "status",
+                command,
                 "--run-dir",
                 str(run_dir),
             ],
@@ -67,7 +73,7 @@ class V2InspectTest(unittest.TestCase):
     def test_feature_ticket_creates_main_scenario_and_requirement(self) -> None:
         with tempfile.TemporaryDirectory() as raw_tmp:
             run_dir = Path(raw_tmp) / "v2" / "ABC-301"
-            self.run_inspect("ABC-301", FIXTURES / "feature-ticket.json", run_dir)
+            self.run_specify("ABC-301", FIXTURES / "feature-ticket.json", run_dir)
             source_pack = self.read_json(run_dir, "source-pack.json")
             facts = self.read_json(run_dir, "behavior-facts.json")
             spec = self.read_json(run_dir, "behavior-spec.json")
@@ -79,13 +85,14 @@ class V2InspectTest(unittest.TestCase):
             self.assertTrue(any(scenario["id"].endswith("-MAIN") for scenario in spec["scenarios"]))
             self.assertEqual(state["schemaVersion"], "2.0.0")
             self.assertEqual(state["workflowVersion"], "v2")
+            self.assertEqual(state["invocation"]["primaryCommand"], "specify")
             self.assertEqual(state["coverage"]["summary"]["passed"], 0)
             self.assertFalse((Path(raw_tmp) / "ABC-301" / "run.json").exists())
 
     def test_bug_ticket_creates_preservation_failure_scenario(self) -> None:
         with tempfile.TemporaryDirectory() as raw_tmp:
             run_dir = Path(raw_tmp) / "v2" / "ABC-302"
-            self.run_inspect("ABC-302", FIXTURES / "bug-ticket.json", run_dir)
+            self.run_specify("ABC-302", FIXTURES / "bug-ticket.json", run_dir)
             spec = self.read_json(run_dir, "behavior-spec.json")
             alternatives = [scenario for scenario in spec["scenarios"] if scenario["type"] == "alternative"]
             self.assertTrue(alternatives)
@@ -98,7 +105,7 @@ class V2InspectTest(unittest.TestCase):
     def test_performance_ticket_without_threshold_keeps_nfr_open(self) -> None:
         with tempfile.TemporaryDirectory() as raw_tmp:
             run_dir = Path(raw_tmp) / "v2" / "ABC-303"
-            self.run_inspect("ABC-303", FIXTURES / "performance-ticket.json", run_dir)
+            self.run_specify("ABC-303", FIXTURES / "performance-ticket.json", run_dir)
             facts = self.read_json(run_dir, "behavior-facts.json")
             spec = self.read_json(run_dir, "behavior-spec.json")
             decisions = facts["openDecisions"] + spec["provenance"]["openDecisions"]
@@ -106,20 +113,21 @@ class V2InspectTest(unittest.TestCase):
             self.assertTrue(any(scenario["type"] == "quality" and scenario["status"] == "unknown" for scenario in spec["scenarios"]))
             self.assertEqual(spec["coverage"]["summary"]["passed"], 0)
 
-    def test_contradictory_source_blocks_confident_inspect(self) -> None:
+    def test_contradictory_source_blocks_confident_specify(self) -> None:
         with tempfile.TemporaryDirectory() as raw_tmp:
             run_dir = Path(raw_tmp) / "v2" / "ABC-304"
-            self.run_inspect("ABC-304", FIXTURES / "contradictory-source.md", run_dir)
+            self.run_specify("ABC-304", FIXTURES / "contradictory-source.md", run_dir)
             facts = self.read_json(run_dir, "behavior-facts.json")
             state = self.read_json(run_dir, "run.json")
             self.assertGreaterEqual(len(facts["contradictions"]), 1)
-            self.assertEqual(state["stages"]["inspect"]["status"], "blocked")
+            self.assertEqual(state["stages"]["specify"]["status"], "blocked")
+            self.assertNotIn("inspect", state["stages"])
             self.assertTrue(any(decision["kind"] == "contradiction" for decision in state["provenance"]["decisions"]))
 
     def test_attachment_instructions_are_reference_only(self) -> None:
         with tempfile.TemporaryDirectory() as raw_tmp:
             run_dir = Path(raw_tmp) / "v2" / "ABC-305"
-            self.run_inspect("ABC-305", FIXTURES / "attachment-instructions.txt", run_dir)
+            self.run_specify("ABC-305", FIXTURES / "attachment-instructions.txt", run_dir)
             source_pack = self.read_json(run_dir, "source-pack.json")
             self.assertEqual(source_pack["sources"][0]["kind"], "attachment")
             self.assertEqual(source_pack["sources"][0]["instructionPolicy"], "reference-only")
@@ -135,7 +143,7 @@ class V2InspectTest(unittest.TestCase):
                 encoding="utf-8",
             )
             run_dir = tmp / "v2" / "ABC-306"
-            self.run_inspect("ABC-306", source, run_dir)
+            self.run_specify("ABC-306", source, run_dir)
             source_pack = self.read_json(run_dir, "source-pack.json")
             facts = self.read_json(run_dir, "behavior-facts.json")
             spec = self.read_json(run_dir, "behavior-spec.json")
@@ -144,18 +152,28 @@ class V2InspectTest(unittest.TestCase):
             self.assertEqual(facts["businessRules"], [])
             self.assertEqual(spec["requirements"][0]["status"], "unknown")
 
-    def test_status_reports_stale_source_digest(self) -> None:
+    def test_trace_reports_stale_source_digest(self) -> None:
         with tempfile.TemporaryDirectory() as raw_tmp:
             tmp = Path(raw_tmp)
             source = tmp / "feature-ticket.json"
             shutil.copyfile(FIXTURES / "feature-ticket.json", source)
             run_dir = tmp / "v2" / "ABC-307"
-            self.run_inspect("ABC-307", source, run_dir)
+            self.run_specify("ABC-307", source, run_dir)
             data = json.loads(source.read_text(encoding="utf-8"))
             data["fields"]["description"] += " The system cannot assign a missing User."
             source.write_text(json.dumps(data, indent=2), encoding="utf-8")
-            status = self.run_status(run_dir)
-            self.assertIn("stale_sources=1", status.stdout)
+            trace = self.run_trace(run_dir)
+            self.assertIn("stale_sources=1", trace.stdout)
+
+    def test_legacy_v2_command_words_remain_aliases(self) -> None:
+        with tempfile.TemporaryDirectory() as raw_tmp:
+            run_dir = Path(raw_tmp) / "v2" / "ABC-308"
+            specify = self.run_specify("ABC-308", FIXTURES / "feature-ticket.json", run_dir, command="inspect")
+            trace = self.run_trace(run_dir, command="status")
+            state = self.read_json(run_dir, "run.json")
+            self.assertIn("[OK] v2 specify", specify.stdout)
+            self.assertIn("[OK] v2 trace", trace.stdout)
+            self.assertEqual(state["invocation"]["primaryCommand"], "specify")
 
 
 if __name__ == "__main__":

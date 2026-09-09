@@ -256,7 +256,7 @@ def validate_scripts(root: Path) -> None:
             raise ValidationError(f"missing script: {path}")
         if path.stat().st_size == 0:
             raise ValidationError(f"empty script: {path}")
-    for name in ["config_loader.py", "contracts.py", "state_writer.py", "v2_contracts.py", "v2_inspect.py"]:
+    for name in ["config_loader.py", "contracts.py", "state_writer.py", "v2_contracts.py", "v2_specify.py"]:
         path = root / "scripts" / "pjf" / name
         if not path.exists():
             raise ValidationError(f"missing shared helper: {path}")

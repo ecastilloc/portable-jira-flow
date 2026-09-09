@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prepare and inspect portable-jira-flow v2 behavior-contract state."""
+"""Prepare and specify portable-jira-flow v2 behavior-contract state."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from pathlib import Path
 
 from pjf.config_loader import load_runtime_config, resolve_profile
 from pjf.contracts import ContractError, validate_run_state, validate_runtime_config_contract
-from pjf.v2_inspect import status_freshness, write_inspect_artifacts
+from pjf.v2_specify import status_freshness, write_specify_artifacts
 from pjf.v2_contracts import (
     behavior_template_path,
     build_v2_run_state,
@@ -71,7 +71,7 @@ def init(args: argparse.Namespace) -> int:
         existing=existing,
         ticket=args.ticket,
         profile_name=profile_name,
-        command="inspect",
+        command="specify",
         spec_path=spec_path,
         spec_digest=spec_digest,
     )
@@ -81,7 +81,7 @@ def init(args: argparse.Namespace) -> int:
     return 0
 
 
-def inspect(args: argparse.Namespace) -> int:
+def specify(args: argparse.Namespace) -> int:
     skill_root = Path(args.skill_root).expanduser().resolve()
     loaded = load_runtime_config(skill_root)
     validate_runtime_config_contract(loaded.config, root=skill_root)
@@ -90,7 +90,7 @@ def inspect(args: argparse.Namespace) -> int:
     profile_name, profile = resolve_profile(loaded.config, args.profile)
     run_dir = resolve_run_dir(args, skill_root, profile)
     existing = {} if args.force else read_json(run_dir / "run.json", {})
-    state = write_inspect_artifacts(
+    state = write_specify_artifacts(
         run_dir=run_dir,
         ticket=ticket,
         profile_name=profile_name,
@@ -104,7 +104,7 @@ def inspect(args: argparse.Namespace) -> int:
     coverage = state.get("coverage", {}).get("summary", {})
     spec = state.get("behaviorSpec") or {}
     print(
-        "[OK] v2 inspect "
+        "[OK] v2 specify "
         f"ticket={ticket} "
         f"sources={len(state.get('provenance', {}).get('sources') or [])} "
         f"scenarios={len(state.get('coverage', {}).get('scenarios') or [])} "
@@ -116,7 +116,7 @@ def inspect(args: argparse.Namespace) -> int:
     return 0
 
 
-def status(args: argparse.Namespace) -> int:
+def trace(args: argparse.Namespace) -> int:
     if args.run_dir:
         run_dir = Path(args.run_dir).expanduser().resolve()
     else:
@@ -133,7 +133,7 @@ def status(args: argparse.Namespace) -> int:
     coverage = (state.get("coverage") or {}).get("summary") or {}
     freshness = status_freshness(state)
     print(
-        "[OK] v2 status "
+        "[OK] v2 trace "
         f"ticket={state.get('ticketKey')} "
         f"spec_status={spec.get('status')} "
         f"digest={str(spec.get('digest') or '')[:12]} "
@@ -156,15 +156,19 @@ def main(argv: list[str]) -> int:
     doctor_parser = subparsers.add_parser("doctor", help="Validate shared runtime config for v2 use.")
     doctor_parser.set_defaults(func=doctor)
 
-    inspect_parser = subparsers.add_parser("inspect", help="Ingest sources and draft a v2 behavior contract.")
-    inspect_parser.add_argument("ticket_arg", nargs="?")
-    inspect_parser.add_argument("--ticket", default=None)
-    inspect_parser.add_argument("--profile", default=None)
-    inspect_parser.add_argument("--run-dir", default=None)
-    inspect_parser.add_argument("--source", action="append", default=[])
-    inspect_parser.add_argument("--source-note", action="append", default=[])
-    inspect_parser.add_argument("--force", action="store_true")
-    inspect_parser.set_defaults(func=inspect)
+    specify_parser = subparsers.add_parser(
+        "specify",
+        aliases=["inspect"],
+        help="Ingest sources and draft a v2 behavior contract.",
+    )
+    specify_parser.add_argument("ticket_arg", nargs="?")
+    specify_parser.add_argument("--ticket", default=None)
+    specify_parser.add_argument("--profile", default=None)
+    specify_parser.add_argument("--run-dir", default=None)
+    specify_parser.add_argument("--source", action="append", default=[])
+    specify_parser.add_argument("--source-note", action="append", default=[])
+    specify_parser.add_argument("--force", action="store_true")
+    specify_parser.set_defaults(func=specify)
 
     init_parser = subparsers.add_parser("init", help="Create or refresh local v2 behavior-contract state.")
     init_parser.add_argument("--ticket", required=True)
@@ -173,12 +177,16 @@ def main(argv: list[str]) -> int:
     init_parser.add_argument("--force", action="store_true")
     init_parser.set_defaults(func=init)
 
-    status_parser = subparsers.add_parser("status", help="Summarize a v2 run state.")
-    status_parser.add_argument("ticket_arg", nargs="?")
-    status_parser.add_argument("--ticket", default=None)
-    status_parser.add_argument("--profile", default=None)
-    status_parser.add_argument("--run-dir", default=None)
-    status_parser.set_defaults(func=status)
+    trace_parser = subparsers.add_parser(
+        "trace",
+        aliases=["status"],
+        help="Summarize v2 behavior contract, coverage, and freshness traceability.",
+    )
+    trace_parser.add_argument("ticket_arg", nargs="?")
+    trace_parser.add_argument("--ticket", default=None)
+    trace_parser.add_argument("--profile", default=None)
+    trace_parser.add_argument("--run-dir", default=None)
+    trace_parser.set_defaults(func=trace)
 
     args = parser.parse_args(argv)
     try:

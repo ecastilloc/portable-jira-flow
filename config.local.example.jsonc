@@ -110,7 +110,7 @@
           "attachmentInstructionPolicy": "reference-only"
         },
         "scenarioExtraction": {
-          "planDuringInspect": true,
+          "planDuringSpecify": true,
           "requireStableIds": true,
           "unknownExpectedResults": "open_decision",
           "coverageStatuses": [

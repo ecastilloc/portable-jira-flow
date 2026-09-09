@@ -177,6 +177,7 @@
         "scenarioExtraction": {
           "type": "object",
           "properties": {
+            "planDuringSpecify": {"type": "boolean"},
             "planDuringInspect": {"type": "boolean"},
             "requireStableIds": {"type": "boolean"},
             "unknownExpectedResults": {"enum": ["open_decision"]},

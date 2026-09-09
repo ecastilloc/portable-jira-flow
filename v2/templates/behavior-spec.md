@@ -51,7 +51,7 @@ Generated: {{generatedAt}}
 
 | Item | Source | Status |
 |---|---|---|
-| Initial draft | Generated from v2 inspect scaffolding | not reviewed |
+| Initial draft | Generated from v2 specify scaffolding | not reviewed |
 
 ## Open Decisions
 

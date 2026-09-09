@@ -22,7 +22,7 @@ Minimum v2 state:
   "invocation": {
     "rawArgs": [],
     "normalizedArgs": [],
-    "primaryCommand": "inspect",
+    "primaryCommand": "specify",
     "legacyAliasesExpanded": []
   },
   "stages": {},
@@ -71,7 +71,7 @@ Minimum v2 state:
     "decisions": []
   },
   "nextAction": {
-    "command": "portable-jira-flow-v2 inspect ABC-123",
+    "command": "portable-jira-flow-v2 specify ABC-123",
     "reason": "Review and refine the generated behavior contract before implementation.",
     "blocked": false
   },
@@ -82,9 +82,9 @@ Minimum v2 state:
 
 Old v1 runs remain readable as historical context. V2 must not rewrite a v1 run to schema `2.0.0`.
 
-## Inspect State
+## Specify State
 
-`inspect` is the first v2 command that writes the full behavior pipeline. It updates:
+`specify` is the first v2 command that writes the full behavior pipeline. It updates:
 
 - `behaviorSpec.path` and `behaviorSpec.digest` for the rendered `behavior-spec.md`
 - `behaviorSpec.contractPath` and `behaviorSpec.contractDigest` for `behavior-spec.json`
@@ -92,7 +92,7 @@ Old v1 runs remain readable as historical context. V2 must not rewrite a v1 run 
 - `behaviorSpec.factsPath` and `behaviorSpec.factsDigest` for `behavior-facts.json`
 - `coverage.requirements`, `coverage.scenarios`, and `coverage.summary`
 - `provenance.sources`, `provenance.decisions`, and `provenance.contradictions`
-- `stages.inspect.status`, which is `blocked` when contradictions exist
-- `nextAction`, which points to review, inspect, or start depending on open decisions
+- `stages.specify.status`, which is `blocked` when contradictions exist
+- `nextAction`, which points to review, specify, or plan depending on open decisions
 
 `run.json` remains the execution authority. The behavior spec is the behavior contract; it does not grant permission to commit, push, publish, mutate environments, or update external systems.

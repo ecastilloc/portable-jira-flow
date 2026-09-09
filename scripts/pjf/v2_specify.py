@@ -1,4 +1,4 @@
-"""Source ingestion and scenario extraction for portable-jira-flow v2 inspect."""
+"""Source ingestion and scenario extraction for portable-jira-flow v2 specify."""
 
 from __future__ import annotations
 
@@ -747,7 +747,7 @@ def artifact_record(key: str, path: Path, producer: str, digest: str | None = No
     return record
 
 
-def write_inspect_artifacts(
+def write_specify_artifacts(
     *,
     run_dir: Path,
     ticket: str,
@@ -781,7 +781,7 @@ def write_inspect_artifacts(
         existing=existing_state,
         ticket=ticket,
         profile_name=profile_name,
-        command="inspect",
+        command="specify",
         spec_path=spec_md_path,
         spec_digest=markdown_digest,
     )
@@ -809,7 +809,8 @@ def write_inspect_artifacts(
         "decisions": (spec.get("provenance") or {}).get("openDecisions", []),
         "contradictions": (spec.get("provenance") or {}).get("contradictions", []),
     }
-    state["stages"]["inspect"] = {
+    state["stages"].pop("inspect", None)
+    state["stages"]["specify"] = {
         "status": "blocked" if state["behaviorSpec"]["contradictionCount"] else "complete",
         "updatedAt": now_iso(),
         "sourcePackDigest": source_pack["digest"],
@@ -819,19 +820,19 @@ def write_inspect_artifacts(
     }
     if state["behaviorSpec"]["contradictionCount"]:
         state["nextAction"] = {
-            "command": f"portable-jira-flow-v2 inspect {ticket}",
+            "command": f"portable-jira-flow-v2 specify {ticket}",
             "reason": "Resolve contradictory source statements before implementation.",
             "blocked": True,
         }
     elif state["behaviorSpec"]["openDecisionCount"]:
         state["nextAction"] = {
-            "command": f"portable-jira-flow-v2 inspect {ticket}",
+            "command": f"portable-jira-flow-v2 specify {ticket}",
             "reason": "Resolve open behavior decisions or continue only within known scenario boundaries.",
             "blocked": False,
         }
     else:
         state["nextAction"] = {
-            "command": f"portable-jira-flow-v2 start {ticket}",
+            "command": f"portable-jira-flow-v2 plan {ticket}",
             "reason": "Behavior contract is drafted with planned scenario coverage.",
             "blocked": False,
         }
@@ -841,7 +842,7 @@ def write_inspect_artifacts(
         ("behaviorSpecData", spec_json_path, spec["digest"]),
         ("behaviorSpecDraft", spec_md_path, markdown_digest),
     ]:
-        upsert_artifact(state, artifact_record(key, path, "inspect", digest))
+        upsert_artifact(state, artifact_record(key, path, "specify", digest))
     return state
 
 

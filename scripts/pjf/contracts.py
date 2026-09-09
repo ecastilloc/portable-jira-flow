@@ -224,7 +224,7 @@ def _validate_artifact_registry(
 ) -> None:
     commands = set(invocation.get("primaryCommands") or {})
     stages = set(stage_registry)
-    allowed_refs = commands | stages | {"all", "migration"}
+    allowed_refs = commands | stages | {"all", "migration", "specify", "plan", "trace"}
     for artifact_name, raw_artifact in artifact_registry.items():
         artifact = _require_mapping(raw_artifact, f"config.artifactRegistry.{artifact_name}")
         for key in [
@@ -389,10 +389,12 @@ def _validate_workflow_v2(profile_name: str, profile: dict[str, Any]) -> None:
             )
     extraction = _optional_mapping(workflow, "scenarioExtraction", f"config.profiles.{profile_name}.workflowV2")
     if extraction:
-        if "planDuringInspect" in extraction:
+        for key in ["planDuringSpecify", "planDuringInspect"]:
+            if key not in extraction:
+                continue
             _require_boolean(
-                extraction["planDuringInspect"],
-                f"config.profiles.{profile_name}.workflowV2.scenarioExtraction.planDuringInspect",
+                extraction[key],
+                f"config.profiles.{profile_name}.workflowV2.scenarioExtraction.{key}",
             )
         if "requireStableIds" in extraction:
             _require_boolean(

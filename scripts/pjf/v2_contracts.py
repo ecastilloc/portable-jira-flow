@@ -143,7 +143,7 @@ def build_v2_run_state(
     state.setdefault(
         "nextAction",
         {
-            "command": f"portable-jira-flow-v2 inspect {ticket}",
+            "command": f"portable-jira-flow-v2 specify {ticket}",
             "reason": "Review and refine the generated behavior contract before implementation.",
             "blocked": False,
         },
@@ -155,7 +155,7 @@ def build_v2_run_state(
         {
             "key": "behaviorSpecDraft",
             "path": str(spec_path),
-            "producer": "inspect",
+            "producer": command,
             "privacyLevel": "internal",
             "committable": False,
             "freshness": "current",

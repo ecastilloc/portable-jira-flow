@@ -1,4 +1,4 @@
 interface:
   display_name: "Portable Jira Flow V2"
   short_description: "Behavior-contract pilot for portable Jira ticket workflow"
-  default_prompt: "Use $portable-jira-flow-v2 inspect ABC-123."
+  default_prompt: "Use $portable-jira-flow-v2 specify ABC-123."

@@ -496,13 +496,14 @@
     },
     "sourcePack": {
       "path": "source-pack.json",
-      "producer": "inspect",
+      "producer": "specify",
       "consumers": [
-        "inspect",
+        "specify",
+        "plan",
         "implement",
         "verify",
         "publish",
-        "status",
+        "trace",
         "report"
       ],
       "sourceOfTruth": false,
@@ -514,12 +515,14 @@
     },
     "behaviorFacts": {
       "path": "behavior-facts.json",
-      "producer": "inspect",
+      "producer": "specify",
       "consumers": [
+        "specify",
+        "plan",
         "implement",
         "verify",
         "publish",
-        "status",
+        "trace",
         "report"
       ],
       "sourceOfTruth": false,
@@ -531,12 +534,14 @@
     },
     "behaviorSpecData": {
       "path": "behavior-spec.json",
-      "producer": "inspect",
+      "producer": "specify",
       "consumers": [
+        "specify",
+        "plan",
         "implement",
         "verify",
         "publish",
-        "status",
+        "trace",
         "report"
       ],
       "sourceOfTruth": false,
@@ -548,12 +553,13 @@
     },
     "behaviorSpecDraft": {
       "path": "behavior-spec.md",
-      "producer": "inspect",
+      "producer": "specify",
       "consumers": [
+        "plan",
         "implement",
         "verify",
         "publish",
-        "status",
+        "trace",
         "report"
       ],
       "sourceOfTruth": false,
@@ -568,7 +574,7 @@
       "producer": "verify",
       "consumers": [
         "publish",
-        "status",
+        "trace",
         "report"
       ],
       "sourceOfTruth": false,

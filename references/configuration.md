@@ -398,7 +398,7 @@ Profiles may opt in to behavior-contract defaults without duplicating repository
       "attachmentInstructionPolicy": "reference-only"
     },
     "scenarioExtraction": {
-      "planDuringInspect": true,
+      "planDuringSpecify": true,
       "requireStableIds": true,
       "unknownExpectedResults": "open_decision",
       "coverageStatuses": [
@@ -428,7 +428,7 @@ Profiles may opt in to behavior-contract defaults without duplicating repository
 
 `scenarioExtraction.unknownExpectedResults: open_decision` keeps vague expected outcomes out of the passed set. `coverageStatuses` defines the allowed scenario lifecycle language for v2 state.
 
-`freshness.trackSourceDigests` and `freshness.trackSpecDigest` tell status/publish checks to compare selected inputs against recorded digests. When sources or the selected behavior spec change, downstream implementation and verification state should be treated as stale until refreshed.
+`freshness.trackSourceDigests` and `freshness.trackSpecDigest` tell v2 trace/publish checks to compare selected inputs against recorded digests. When sources or the selected behavior spec change, downstream implementation and verification state should be treated as stale until refreshed.
 
 Common keys:
 

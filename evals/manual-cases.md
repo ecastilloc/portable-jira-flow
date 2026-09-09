@@ -281,12 +281,12 @@ Expected:
 - Optional `workflowV2` keys are validated when present.
 - No Jira fetch, branch creation, test command, push, PR/MR creation, deployment, or environment mutation occurs.
 
-### 15. V2 Inspect Creates Local Behavior Contract
+### 15. V2 Specify Creates Local Behavior Contract
 
 Input:
 
 ```text
-portable-jira-flow-v2 inspect ABC-114 --source evals/fixtures/v2/feature-ticket.json
+portable-jira-flow-v2 specify ABC-114 --source evals/fixtures/v2/feature-ticket.json
 ```
 
 Expected:
@@ -307,7 +307,7 @@ Expected:
 Input:
 
 ```text
-portable-jira-flow-v2 inspect ABC-301 --source evals/fixtures/v2/feature-ticket.json
+portable-jira-flow-v2 specify ABC-301 --source evals/fixtures/v2/feature-ticket.json
 ```
 
 Expected:
@@ -317,14 +317,14 @@ Expected:
 - Acceptance criteria seed scenarios, but final scenarios include preconditions, trigger, expected result, guarantees, source refs, and status.
 - Negative phrases such as `cannot`, `closed`, and `inactive` produce alternative or failure scenarios.
 - Existing code and test sources are recorded as current-behavior evidence; they do not create intended-behavior requirements by themselves.
-- No scenario is marked `passed` during inspect.
+- No scenario is marked `passed` during specify.
 
 ### 15b. V2 Bug Ticket Preserves Regression Behavior
 
 Input:
 
 ```text
-portable-jira-flow-v2 inspect ABC-302 --source evals/fixtures/v2/bug-ticket.json
+portable-jira-flow-v2 specify ABC-302 --source evals/fixtures/v2/bug-ticket.json
 ```
 
 Expected:
@@ -338,7 +338,7 @@ Expected:
 Input:
 
 ```text
-portable-jira-flow-v2 inspect ABC-303 --source evals/fixtures/v2/performance-ticket.json
+portable-jira-flow-v2 specify ABC-303 --source evals/fixtures/v2/performance-ticket.json
 ```
 
 Expected:
@@ -353,13 +353,13 @@ Expected:
 Input:
 
 ```text
-portable-jira-flow-v2 inspect ABC-304 --source evals/fixtures/v2/contradictory-source.md
+portable-jira-flow-v2 specify ABC-304 --source evals/fixtures/v2/contradictory-source.md
 ```
 
 Expected:
 
 - Contradictory allow/disallow statements are recorded in `behavior-facts.json`.
-- `run.json.stages.inspect.status` is `blocked`.
+- `run.json.stages.specify.status` is `blocked`.
 - `run.json.nextAction.blocked` is `true`.
 - Implementation is not recommended until the contradiction is resolved.
 
@@ -368,7 +368,7 @@ Expected:
 Input:
 
 ```text
-portable-jira-flow-v2 inspect ABC-305 --source evals/fixtures/v2/attachment-instructions.txt
+portable-jira-flow-v2 specify ABC-305 --source evals/fixtures/v2/attachment-instructions.txt
 ```
 
 Expected:
@@ -378,19 +378,19 @@ Expected:
 - The source entry has `executableInstructions: false`.
 - Imperative text inside the attachment is not treated as a user instruction.
 
-### 16. V2 Status Does Not Run Stages
+### 16. V2 Trace Does Not Run Stages
 
 Input:
 
 ```text
-portable-jira-flow-v2 status ABC-114
+portable-jira-flow-v2 trace ABC-114
 ```
 
 Expected:
 
 - Reads v2 `run.json` and artifact metadata only.
 - Reports behavior spec status, digest, coverage summary, blockers, stale inputs, and next action.
-- If a source file captured by `inspect` changes, status reports a nonzero `stale_sources` count.
+- If a source file captured by `specify` changes, trace reports a nonzero `stale_sources` count.
 - Does not fetch Jira, prepare workspaces, run validation, push, publish, or mutate environments.
 
 ### 17. Invalid Config Contracts Fail
